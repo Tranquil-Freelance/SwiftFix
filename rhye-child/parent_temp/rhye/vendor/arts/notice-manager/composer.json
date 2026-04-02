@@ -1,0 +1,21 @@
+{
+  "name": "arts/notice-manager",
+  "description": "Manages the notices appearance in the WordPress admin panel",
+  "type": "library",
+  "repositories": [],
+  "autoload": {
+    "psr-4": {
+      "Arts\\NoticeManager\\": "src/php/"
+    }
+  },
+  "require": {
+    "php": ">=7.4"
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true
+    },
+    "optimize-autoloader": true,
+    "sort-packages": true
+  }
+}

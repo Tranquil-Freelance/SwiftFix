@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: rhye-portfolio
+    runtime: docker
+    plan: free
+    envVars:
+      - key: WORDPRESS_DB_HOST
+        fromDatabase:
+          name: rhye-db
+          property: host
+      - key: WORDPRESS_DB_USER
+        fromDatabase:
+          name: rhye-db
+          property: user
+      - key: WORDPRESS_DB_PASSWORD
+        fromDatabase:
+          name: rhye-db
+          property: password
+      - key: WORDPRESS_DB_NAME
+        fromDatabase:
+          name: rhye-db
+          property: database
+      - key: PORT
+        value: 80
+      # Salt and Key generation for WP
+      - key: AUTH_KEY
+        generateValue: true
+      - key: SECURE_AUTH_KEY
+        generateValue: true
+      - key: LOGGED_IN_KEY
+        generateValue: true
+      - key: NONCE_KEY
+        generateValue: true
+      - key: AUTH_SALT
+        generateValue: true
+      - key: SECURE_AUTH_SALT
+        generateValue: true
+      - key: LOGGED_IN_SALT
+        generateValue: true
+      - key: NONCE_SALT
+        generateValue: true
+
+databases:
+  - name: rhye-db
+    plan: free
