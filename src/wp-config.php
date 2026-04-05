@@ -87,6 +87,31 @@ if ( ! defined( 'DB_DRIVER' ) ) {
 }
 define( 'DB_TYPE', 'pgsql' );
 
+// Public site URL: overrides stale/wrong siteurl + home in the DB (fixes unstyled wp-admin / broken asset URLs on Render).
+// Optional env: WP_HOME, WP_SITEURL. Default on Render: RENDER_EXTERNAL_URL (e.g. https://swiftfixwp.onrender.com).
+$swiftfix_home = getenv( 'WP_HOME' );
+if ( ! is_string( $swiftfix_home ) || $swiftfix_home === '' ) {
+	$swiftfix_home = getenv( 'WP_SITEURL' );
+}
+if ( ! is_string( $swiftfix_home ) || $swiftfix_home === '' ) {
+	$swiftfix_home = getenv( 'RENDER_EXTERNAL_URL' );
+}
+if ( is_string( $swiftfix_home ) && $swiftfix_home !== '' ) {
+	$swiftfix_home = rtrim( $swiftfix_home, '/' );
+	$swiftfix_siteurl = getenv( 'WP_SITEURL' );
+	if ( ! is_string( $swiftfix_siteurl ) || $swiftfix_siteurl === '' ) {
+		$swiftfix_siteurl = $swiftfix_home;
+	} else {
+		$swiftfix_siteurl = rtrim( $swiftfix_siteurl, '/' );
+	}
+	if ( ! defined( 'WP_HOME' ) ) {
+		define( 'WP_HOME', $swiftfix_home );
+	}
+	if ( ! defined( 'WP_SITEURL' ) ) {
+		define( 'WP_SITEURL', $swiftfix_siteurl );
+	}
+}
+
 /**#@+
  * Authentication Unique Keys and Salts.
  * Get these from https://api.wordpress.org/secret-key/1.1/salt/
