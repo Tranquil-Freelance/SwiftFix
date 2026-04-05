@@ -16,12 +16,13 @@ COPY src/wp-content/themes/ /var/www/html/wp-content/themes/
 # Copy custom config
 COPY src/wp-config.php /var/www/html/wp-config.php
 
-# Set up PG4WP (Postgres support for WordPress) — curl tarball avoids git auth issues on Render
-RUN curl -fsSL https://github.com/kevinoid/pg4wp/archive/refs/heads/master.tar.gz -o /tmp/pg4wp.tgz \
-    && mkdir -p /var/www/html/wp-content/pg4wp \
-    && tar -xzf /tmp/pg4wp.tgz -C /var/www/html/wp-content/pg4wp --strip-components=1 \
+# PG4WP: kevinoid/pg4wp is gone; maintained fork is PostgreSQL-For-Wordpress/postgresql-for-wordpress (branch v3).
+# Archive root folder is postgresql-for-wordpress-3/; plugin lives in pg4wp/.
+RUN curl -fsSL https://github.com/PostgreSQL-For-Wordpress/postgresql-for-wordpress/archive/refs/heads/v3.tar.gz -o /tmp/pfw.tgz \
+    && tar -xzf /tmp/pfw.tgz -C /tmp \
+    && mv /tmp/postgresql-for-wordpress-3/pg4wp /var/www/html/wp-content/pg4wp \
     && cp /var/www/html/wp-content/pg4wp/db.php /var/www/html/wp-content/db.php \
-    && rm -f /tmp/pg4wp.tgz
+    && rm -rf /tmp/pfw.tgz /tmp/postgresql-for-wordpress-3
 
 # Ensure permissions are correct for Apache
 RUN chown -R www-data:www-data /var/www/html
