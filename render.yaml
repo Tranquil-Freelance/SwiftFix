@@ -32,6 +32,8 @@ services:
           property: database
       - key: PORT
         value: "80"
+      - key: PGSSLMODE
+        value: require
       - key: AUTH_KEY
         generateValue: true
       - key: SECURE_AUTH_KEY

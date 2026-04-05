@@ -7,6 +7,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
+// Render Postgres (and libpq) expects SSL. PG4WP uses pg_connect(); PGSSLMODE is read by libpq.
+$db_host_env = getenv( 'WORDPRESS_DB_HOST' ) ?: '';
+$sslmode      = getenv( 'WORDPRESS_DB_SSLMODE' );
+if ( $sslmode ) {
+	putenv( 'PGSSLMODE=' . $sslmode );
+} elseif ( strpos( $db_host_env, 'render.com' ) !== false || getenv( 'RENDER' ) ) {
+	putenv( 'PGSSLMODE=require' );
+}
+
 /** The name of the database for WordPress */
 define( 'DB_NAME', getenv('WORDPRESS_DB_NAME') ?: 'database' );
 

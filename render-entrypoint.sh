@@ -3,6 +3,12 @@
 # /usr/src/wordpress when argv[1] matches apache2* — so we must end by exec'ing
 # docker-entrypoint.sh apache2-foreground, not a random script name as CMD.
 set -e
+
+# Libpq (PHP pgsql) uses PGSSLMODE; Render Postgres requires SSL.
+if [ -n "${WORDPRESS_DB_HOST:-}" ] && echo "$WORDPRESS_DB_HOST" | grep -q 'render\.com'; then
+  export PGSSLMODE="${PGSSLMODE:-${WORDPRESS_DB_SSLMODE:-require}}"
+fi
+
 port="${PORT:-80}"
 if [ -f /etc/apache2/ports.conf ]; then
   sed -i "s/^Listen .*/Listen ${port}/" /etc/apache2/ports.conf
