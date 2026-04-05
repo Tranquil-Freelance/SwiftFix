@@ -6,7 +6,7 @@ set -e
 
 # Libpq (PHP pgsql) uses PGSSLMODE; Render Postgres requires SSL.
 if [ -n "${WORDPRESS_DB_HOST:-}" ] && echo "$WORDPRESS_DB_HOST" | grep -q 'render\.com'; then
-  export PGSSLMODE="${PGSSLMODE:-${WORDPRESS_DB_SSLMODE:-require}}"
+  export PGSSLMODE="${PGSSLMODE:-${WORDPRESS_DB_SSLMODE:-prefer}}"
 fi
 
 port="${PORT:-80}"

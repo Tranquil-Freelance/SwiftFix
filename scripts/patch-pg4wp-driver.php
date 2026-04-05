@@ -40,7 +40,7 @@ $new = <<<'NEW'
         if ( $sm && $sm !== 'disable' ) {
             $GLOBALS['pg4wp_connstr'] .= ' sslmode=' . $sm;
         } elseif ( getenv( 'RENDER' ) ) {
-            $GLOBALS['pg4wp_connstr'] .= ' sslmode=require';
+            $GLOBALS['pg4wp_connstr'] .= ' sslmode=prefer';
         }
     }
 
