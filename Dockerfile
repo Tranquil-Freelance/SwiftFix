@@ -8,30 +8,29 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pgsql pdo_pgsql \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www/html
+# The base image declares VOLUME /var/www/html — runtime starts with an empty volume.
+# docker-entrypoint.sh copies FROM /usr/src/wordpress into /var/www/html only when
+# CMD is apache2-foreground (argv[1] matches apache2*). Put all site files under
+# /usr/src/wordpress so they are included in that copy.
 
-# Copy themes
-COPY src/wp-content/themes/ /var/www/html/wp-content/themes/
+COPY src/wp-content/themes/ /usr/src/wordpress/wp-content/themes/
+COPY src/wp-config.php /usr/src/wordpress/wp-config.php
 
-# Copy custom config
-COPY src/wp-config.php /var/www/html/wp-config.php
-
-# PG4WP: kevinoid/pg4wp is gone; maintained fork is PostgreSQL-For-Wordpress/postgresql-for-wordpress (branch v3).
-# Archive root folder is postgresql-for-wordpress-3/; plugin lives in pg4wp/.
+# PG4WP: maintained fork PostgreSQL-For-Wordpress/postgresql-for-wordpress (v3).
 RUN curl -fsSL https://github.com/PostgreSQL-For-Wordpress/postgresql-for-wordpress/archive/refs/heads/v3.tar.gz -o /tmp/pfw.tgz \
     && tar -xzf /tmp/pfw.tgz -C /tmp \
-    && mv /tmp/postgresql-for-wordpress-3/pg4wp /var/www/html/wp-content/pg4wp \
-    && cp /var/www/html/wp-content/pg4wp/db.php /var/www/html/wp-content/db.php \
+    && mv /tmp/postgresql-for-wordpress-3/pg4wp /usr/src/wordpress/wp-content/pg4wp \
+    && cp /usr/src/wordpress/wp-content/pg4wp/db.php /usr/src/wordpress/wp-content/db.php \
     && rm -rf /tmp/pfw.tgz /tmp/postgresql-for-wordpress-3
 
-# Ensure permissions are correct for Apache
-RUN chown -R www-data:www-data /var/www/html
+RUN chown -R www-data:www-data /usr/src/wordpress
 
-# Enable rewrite module for pretty permalinks
 RUN a2enmod rewrite
 
-COPY render-start.sh /usr/local/bin/render-start.sh
-RUN chmod +x /usr/local/bin/render-start.sh
+COPY render-entrypoint.sh /usr/local/bin/render-entrypoint.sh
+RUN chmod +x /usr/local/bin/render-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/render-entrypoint.sh"]
+CMD ["apache2-foreground"]
 
 EXPOSE 80
-CMD ["/usr/local/bin/render-start.sh"]
