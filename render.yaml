@@ -14,22 +14,12 @@ services:
       mountPath: /var/www/html/wp-content/uploads
       sizeGB: 5
     envVars:
-      - key: WORDPRESS_DB_HOST
+      # Postgres fromDatabase supports user/password/database/connectionString — not "host"
+      # (host is for web/private services). Use the private connection URL for libpq.
+      - key: DATABASE_URL
         fromDatabase:
           name: swiftfix-db
-          property: host
-      - key: WORDPRESS_DB_USER
-        fromDatabase:
-          name: swiftfix-db
-          property: user
-      - key: WORDPRESS_DB_PASSWORD
-        fromDatabase:
-          name: swiftfix-db
-          property: password
-      - key: WORDPRESS_DB_NAME
-        fromDatabase:
-          name: swiftfix-db
-          property: database
+          property: connectionString
       - key: PORT
         value: "80"
       - key: PGSSLMODE

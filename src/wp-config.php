@@ -25,28 +25,31 @@ if ( getenv( 'RENDER' ) ) {
 	);
 }
 
-// Linked Postgres on Render often exposes DATABASE_URL only — map into WORDPRESS_* for PG4WP.
-if ( ! getenv( 'WORDPRESS_DB_HOST' ) ) {
-	$db_url = getenv( 'DATABASE_URL' );
-	if ( is_string( $db_url ) && preg_match( '#^postgres(ql)?://#i', $db_url ) ) {
-		$p = parse_url( $db_url );
-		if ( ! empty( $p['host'] ) ) {
-			$host = $p['host'];
-			if ( ! empty( $p['port'] ) ) {
-				$host .= ':' . (int) $p['port'];
-			}
-			putenv( 'WORDPRESS_DB_HOST=' . $host );
-			putenv( 'WORDPRESS_DB_USER=' . rawurldecode( (string) ( $p['user'] ?? '' ) ) );
-			putenv( 'WORDPRESS_DB_PASSWORD=' . rawurldecode( (string) ( $p['pass'] ?? '' ) ) );
-			$dbpath = isset( $p['path'] ) ? rawurldecode( ltrim( (string) $p['path'], '/' ) ) : '';
-			if ( $dbpath !== '' ) {
-				putenv( 'WORDPRESS_DB_NAME=' . $dbpath );
-			}
-			parse_str( (string) ( $p['query'] ?? '' ), $qs );
-			if ( ! empty( $qs['sslmode'] ) ) {
-				putenv( 'PGSSLMODE=' . $qs['sslmode'] );
-				putenv( 'WORDPRESS_DB_SSLMODE=' . $qs['sslmode'] );
-			}
+// Render Postgres: DATABASE_URL / INTERNAL_DATABASE_URL is the private connection string
+// (Blueprint property: connectionString). It is authoritative when set and overrides stale
+// WORDPRESS_DB_* from invalid fromDatabase bindings (e.g. property "host" is not for Postgres).
+$db_url = getenv( 'DATABASE_URL' );
+if ( ! is_string( $db_url ) || ! preg_match( '#^postgres(ql)?://#i', $db_url ) ) {
+	$db_url = getenv( 'INTERNAL_DATABASE_URL' );
+}
+if ( is_string( $db_url ) && preg_match( '#^postgres(ql)?://#i', $db_url ) ) {
+	$p = parse_url( $db_url );
+	if ( ! empty( $p['host'] ) ) {
+		$host = $p['host'];
+		if ( ! empty( $p['port'] ) ) {
+			$host .= ':' . (int) $p['port'];
+		}
+		putenv( 'WORDPRESS_DB_HOST=' . $host );
+		putenv( 'WORDPRESS_DB_USER=' . rawurldecode( (string) ( $p['user'] ?? '' ) ) );
+		putenv( 'WORDPRESS_DB_PASSWORD=' . rawurldecode( (string) ( $p['pass'] ?? '' ) ) );
+		$dbpath = isset( $p['path'] ) ? rawurldecode( ltrim( (string) $p['path'], '/' ) ) : '';
+		if ( $dbpath !== '' ) {
+			putenv( 'WORDPRESS_DB_NAME=' . $dbpath );
+		}
+		parse_str( (string) ( $p['query'] ?? '' ), $qs );
+		if ( ! empty( $qs['sslmode'] ) ) {
+			putenv( 'PGSSLMODE=' . $qs['sslmode'] );
+			putenv( 'WORDPRESS_DB_SSLMODE=' . $qs['sslmode'] );
 		}
 	}
 }
