@@ -7,6 +7,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
+// Surface PHP errors in Render "Logs" (Apache stderr) without exposing them in HTML.
+if ( getenv( 'RENDER' ) ) {
+	@ini_set( 'log_errors', '1' );
+	@ini_set( 'error_log', 'php://stderr' );
+}
+
 // Render Postgres (and libpq) expects SSL. PG4WP uses pg_connect(); PGSSLMODE is read by libpq.
 $db_host_env = getenv( 'WORDPRESS_DB_HOST' ) ?: '';
 $sslmode      = getenv( 'WORDPRESS_DB_SSLMODE' );

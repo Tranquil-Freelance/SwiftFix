@@ -15,13 +15,15 @@ RUN apt-get update && apt-get install -y \
 
 COPY src/wp-content/themes/ /usr/src/wordpress/wp-content/themes/
 COPY src/wp-config.php /usr/src/wordpress/wp-config.php
+COPY scripts/patch-pg4wp-driver.php /tmp/patch-pg4wp-driver.php
 
 # PG4WP: maintained fork PostgreSQL-For-Wordpress/postgresql-for-wordpress (v3).
 RUN curl -fsSL https://github.com/PostgreSQL-For-Wordpress/postgresql-for-wordpress/archive/refs/heads/v3.tar.gz -o /tmp/pfw.tgz \
     && tar -xzf /tmp/pfw.tgz -C /tmp \
     && mv /tmp/postgresql-for-wordpress-3/pg4wp /usr/src/wordpress/wp-content/pg4wp \
     && cp /usr/src/wordpress/wp-content/pg4wp/db.php /usr/src/wordpress/wp-content/db.php \
-    && rm -rf /tmp/pfw.tgz /tmp/postgresql-for-wordpress-3
+    && php /tmp/patch-pg4wp-driver.php /usr/src/wordpress/wp-content/pg4wp/driver_pgsql.php \
+    && rm -rf /tmp/pfw.tgz /tmp/postgresql-for-wordpress-3 /tmp/patch-pg4wp-driver.php
 
 RUN chown -R www-data:www-data /usr/src/wordpress
 
