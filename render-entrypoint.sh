@@ -12,4 +12,16 @@ for f in /etc/apache2/sites-enabled/000-default.conf /etc/apache2/sites-availabl
     sed -i "s/<VirtualHost \*:80>/<VirtualHost *:${port}>/" "$f"
   fi
 done
+
+# A Render disk (or earlier failed deploy) can leave a *partial* /var/www/html: e.g.
+# wp-includes/ exists but index.php does not. Upstream docker-entrypoint.sh then skips
+# the install tar entirely (it requires BOTH index.php and wp-includes to be absent).
+# Merge any missing paths from the image so Apache always gets a full root.
+cd /var/www/html
+if [ ! -f index.php ] && [ -f /usr/src/wordpress/index.php ]; then
+  echo >&2 "swiftfix: merging WordPress files from /usr/src/wordpress into /var/www/html"
+  (cd /usr/src/wordpress && tar cf - .) | (cd /var/www/html && tar xf - --skip-old-files)
+  chown -R www-data:www-data /var/www/html 2>/dev/null || true
+fi
+
 exec /usr/local/bin/docker-entrypoint.sh "$@"
