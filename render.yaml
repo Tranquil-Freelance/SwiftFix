@@ -8,7 +8,8 @@ services:
     region: oregon
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /
+    # Static file — avoids booting WordPress on every probe (GET / was ~220KB + DB).
+    healthCheckPath: /healthz.txt
     disk:
       name: swiftfix-uploads
       mountPath: /var/www/html/wp-content/uploads
