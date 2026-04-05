@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
 # /usr/src/wordpress so they are included in that copy.
 
 COPY src/wp-content/themes/ /usr/src/wordpress/wp-content/themes/
+COPY src/wp-content/mu-plugins/ /usr/src/wordpress/wp-content/mu-plugins/
 COPY src/wp-config.php /usr/src/wordpress/wp-config.php
 COPY scripts/patch-pg4wp-driver.php /tmp/patch-pg4wp-driver.php
 

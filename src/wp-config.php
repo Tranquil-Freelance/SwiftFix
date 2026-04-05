@@ -87,6 +87,11 @@ if ( ! defined( 'DB_DRIVER' ) ) {
 }
 define( 'DB_TYPE', 'pgsql' );
 
+// Default theme for new installs (DB options still win until mu-plugin runs for stock themes).
+if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
+	define( 'WP_DEFAULT_THEME', 'rhye-child' );
+}
+
 // Public site URL: overrides stale/wrong siteurl + home in the DB (fixes unstyled wp-admin / broken asset URLs on Render).
 // Optional env: WP_HOME, WP_SITEURL. Default on Render: RENDER_EXTERNAL_URL (e.g. https://swiftfixwp.onrender.com).
 $swiftfix_home = getenv( 'WP_HOME' );
