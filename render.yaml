@@ -1,28 +1,37 @@
+# Blueprint for this repo only (separate from other Render apps).
+# Create via Dashboard: https://dashboard.render.com/blueprints → New Blueprint Instance
 services:
   - type: web
-    name: rhye-portfolio
+    name: rhye-themeforest-wp
     runtime: docker
-    plan: free
+    plan: starter
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    disk:
+      name: rhye-tf-uploads
+      mountPath: /var/www/html/wp-content/uploads
+      sizeGB: 5
     envVars:
       - key: WORDPRESS_DB_HOST
         fromDatabase:
-          name: rhye-db
+          name: rhye-themeforest-db
           property: host
       - key: WORDPRESS_DB_USER
         fromDatabase:
-          name: rhye-db
+          name: rhye-themeforest-db
           property: user
       - key: WORDPRESS_DB_PASSWORD
         fromDatabase:
-          name: rhye-db
+          name: rhye-themeforest-db
           property: password
       - key: WORDPRESS_DB_NAME
         fromDatabase:
-          name: rhye-db
+          name: rhye-themeforest-db
           property: database
       - key: PORT
-        value: 80
-      # Salt and Key generation for WP
+        value: "80"
       - key: AUTH_KEY
         generateValue: true
       - key: SECURE_AUTH_KEY
@@ -41,5 +50,6 @@ services:
         generateValue: true
 
 databases:
-  - name: rhye-db
+  - name: rhye-themeforest-db
     plan: free
+    databaseName: wordpress
