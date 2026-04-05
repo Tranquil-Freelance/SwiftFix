@@ -2,7 +2,7 @@
 # Create via Dashboard: https://dashboard.render.com/blueprints → New Blueprint Instance
 services:
   - type: web
-    name: rhye-themeforest-wp
+    name: swiftfixwp
     runtime: docker
     plan: starter
     region: oregon
@@ -10,25 +10,25 @@ services:
     dockerContext: .
     healthCheckPath: /
     disk:
-      name: rhye-tf-uploads
+      name: swiftfix-uploads
       mountPath: /var/www/html/wp-content/uploads
       sizeGB: 5
     envVars:
       - key: WORDPRESS_DB_HOST
         fromDatabase:
-          name: rhye-themeforest-db
+          name: swiftfix-db
           property: host
       - key: WORDPRESS_DB_USER
         fromDatabase:
-          name: rhye-themeforest-db
+          name: swiftfix-db
           property: user
       - key: WORDPRESS_DB_PASSWORD
         fromDatabase:
-          name: rhye-themeforest-db
+          name: swiftfix-db
           property: password
       - key: WORDPRESS_DB_NAME
         fromDatabase:
-          name: rhye-themeforest-db
+          name: swiftfix-db
           property: database
       - key: PORT
         value: "80"
@@ -50,6 +50,6 @@ services:
         generateValue: true
 
 databases:
-  - name: rhye-themeforest-db
+  - name: swiftfix-db
     plan: free
     databaseName: wordpress
