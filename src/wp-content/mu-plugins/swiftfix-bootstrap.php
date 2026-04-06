@@ -18,6 +18,39 @@ if ( false !== $swiftfix_auto_off && in_array( strtolower( (string) $swiftfix_au
 add_action( 'init', 'swiftfix_bootstrap_run', 2 );
 
 /**
+ * Fix Home page meta if bootstrap stored _elementor_page_settings as JSON text (Elementor 3.x fatals).
+ */
+add_action( 'admin_init', 'swiftfix_repair_elementor_page_settings_meta', 1 );
+
+/**
+ * @return void
+ */
+function swiftfix_repair_elementor_page_settings_meta() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	if ( get_option( 'swiftfix_elementor_page_settings_repaired' ) ) {
+		return;
+	}
+	$home_id = (int) get_option( 'page_on_front' );
+	if ( ! $home_id ) {
+		return;
+	}
+	$raw = get_post_meta( $home_id, '_elementor_page_settings', true );
+	if ( ! is_string( $raw ) || $raw === '' ) {
+		update_option( 'swiftfix_elementor_page_settings_repaired', true );
+
+		return;
+	}
+	$decoded = json_decode( $raw, true );
+	if ( ! is_array( $decoded ) ) {
+		return;
+	}
+	update_post_meta( $home_id, '_elementor_page_settings', $decoded );
+	update_option( 'swiftfix_elementor_page_settings_repaired', true );
+}
+
+/**
  * @return void
  */
 function swiftfix_bootstrap_run() {
@@ -166,12 +199,10 @@ function swiftfix_bootstrap_apply_elementor_to_page( $post_id, array $data ) {
 	update_post_meta( $post_id, '_elementor_version', ELEMENTOR_VERSION );
 	update_post_meta( $post_id, '_elementor_data', wp_slash( $encoded ) );
 
+	// Must be a PHP array — WordPress serializes it. A JSON string breaks Elementor 3.x
+	// (sanitize_settings() expects array, not string).
 	if ( ! empty( $data['page_settings'] ) && is_array( $data['page_settings'] ) ) {
-		update_post_meta(
-			$post_id,
-			'_elementor_page_settings',
-			wp_slash( wp_json_encode( $data['page_settings'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) )
-		);
+		update_post_meta( $post_id, '_elementor_page_settings', $data['page_settings'] );
 	}
 
 	if ( class_exists( '\Elementor\Plugin' ) ) {
