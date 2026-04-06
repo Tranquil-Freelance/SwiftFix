@@ -7,6 +7,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
+// TLS is terminated at Render's proxy; PHP sees plain HTTP. Without this, is_ssl() is false and
+// WordPress prints http:// script URLs → mixed content blocked → Rhye preloader JS never runs (black screen).
+if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === strtolower( (string) $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ) {
+	$_SERVER['HTTPS'] = 'on';
+}
+if ( isset( $_SERVER['HTTP_X_FORWARDED_SSL'] ) && 'on' === strtolower( (string) $_SERVER['HTTP_X_FORWARDED_SSL'] ) ) {
+	$_SERVER['HTTPS'] = 'on';
+}
+
 // Surface PHP errors in Render "Logs" (Apache stderr) without exposing them in HTML.
 if ( getenv( 'RENDER' ) ) {
 	@ini_set( 'log_errors', '1' );
