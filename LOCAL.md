@@ -1,46 +1,33 @@
 # Run SwiftFix / Rhye locally (Local WP app)
 
-Use **Local** with **MySQL** first. The GitHub `Dockerfile` + `src/wp-config.php` target **Render + PostgreSQL (PG4WP)**; they are not what Local generates, so **do not replace Local’s `wp-config.php`** with the repo copy.
+Use **Local** with **MySQL**. The GitHub `Dockerfile` + `src/wp-config.php` are for **Render + PostgreSQL**; do **not** replace Local’s `wp-config.php` with the repo copy.
 
-## 1. Create a site in Local
+## One-time copy into the Local site
 
-- **PHP** 8.2+ (match production if you can).
-- **Web server** Apache or nginx (either is fine).
-- **Database** MySQL (Local default).
+Open your site folder (`app/public/`).
 
-Finish the WordPress install in the browser (language, admin user, etc.).
-
-## 2. Copy theme files from this repo into the Local site
-
-Open the site folder: **Local → site → right‑click → Open site shell** or **Reveal in Finder**. Your WordPress root is usually `app/public/`.
-
-Copy into `app/public/wp-content/`:
+Copy from this repo:
 
 | From repo | Into Local `app/public/wp-content/` |
 |-----------|-------------------------------------|
-| `src/wp-content/themes/rhye/` | `themes/rhye/` (merge / replace) |
+| `src/wp-content/themes/rhye/` | `themes/rhye/` |
 | `src/wp-content/themes/rhye-child/` | `themes/rhye-child/` |
-| `src/wp-content/mu-plugins/*.php` | `mu-plugins/` (create folder if missing) |
+| `src/wp-content/mu-plugins/swiftfix-bootstrap.php` | `mu-plugins/swiftfix-bootstrap.php` |
 
-**Do not** copy `src/wp-config.php` over Local’s `wp-config.php`.
+**Do not** copy `src/wp-config.php` or `wp-content/db.php` (Postgres/PG4WP are Render-only).
 
-**Do not** add `wp-content/db.php` on Local. That file is only for **PostgreSQL + PG4WP** on Render; with MySQL it would break the site.
+## First visit = automatic setup
 
-## 3. Activate the theme
+Open the site in the browser (front end, not only wp-admin). The **SwiftFix bootstrap** mu-plugin will **once per site**:
 
-In **wp-admin → Appearance → Themes**, activate **Rhye Child** (parent **Rhye** must stay in `themes/rhye/`).
+1. Activate **Rhye Child**
+2. Install **Elementor** from wordpress.org if the plugin folder is missing (needs internet), or use files you add under `plugins/elementor/`
+3. Activate Elementor
+4. Import **`electrician-template.json`** into a **Home** page and set **Settings → Reading** (static Home + Blog)
+5. Set site title / SwiftFix customizer defaults (override title with env **`SWIFTFIX_SITE_NAME`** on Render; on Local you can change in **Settings → General** after)
 
-## 4. Match the “real” ThemeForest look
+If something fails, check **wp-admin** for a red **SwiftFix setup** notice, or PHP/Apache logs.
 
-- Install **Elementor** (**Plugins → Add New**).
-- Import **demo / kit** from your ThemeForest package (Merlin wizard, XML, or Elementor templates), or build a **Home** page in Elementor.
-- **Settings → Reading**: set homepage to a **static page** (e.g. Home) once that page exists.
+## Then Render
 
-**Appearance → Customize → SwiftFix Settings** controls business name, phone, etc.
-
-## 5. When Local is good → Render again
-
-- Commit and push the same `src/wp-content/themes/` and `mu-plugins/` (and any plugin code you add under `src/wp-content/plugins/` if you choose to vendor them).
-- Recreate the stack from **`render.yaml`** (Blueprint) so `DATABASE_URL`, disk, and Docker build match the repo.
-
-The Render image will keep using **Postgres + PG4WP** and the **Docker** `wp-config` path; Local stays on **MySQL + stock `wp-config`**.
+Push the same `src/wp-content` tree; the Docker image already includes Elementor under `wp-content/plugins/`, so production usually skips the download step.

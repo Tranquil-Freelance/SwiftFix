@@ -28,6 +28,11 @@ RUN curl -fsSL https://github.com/PostgreSQL-For-Wordpress/postgresql-for-wordpr
     && php /tmp/patch-pg4wp-driver.php /usr/src/wordpress/wp-content/pg4wp/driver_pgsql.php \
     && rm -rf /tmp/pfw.tgz /tmp/postgresql-for-wordpress-3 /tmp/patch-pg4wp-driver.php
 
+# Elementor (free): bundled so first boot does not depend on wordpress.org from PHP.
+RUN curl -fsSL https://downloads.wordpress.org/plugin/elementor.latest-stable.zip -o /tmp/elementor.zip \
+    && unzip -qo /tmp/elementor.zip -d /usr/src/wordpress/wp-content/plugins/ \
+    && rm -f /tmp/elementor.zip
+
 RUN chown -R www-data:www-data /usr/src/wordpress
 
 RUN a2enmod rewrite

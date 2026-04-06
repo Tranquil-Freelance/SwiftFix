@@ -7,6 +7,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
+// Direct filesystem for automated plugin install / updates (Docker + typical Local).
+if ( ! defined( 'FS_METHOD' ) ) {
+	define( 'FS_METHOD', 'direct' );
+}
+
 // TLS is terminated at Render's proxy; PHP sees plain HTTP. Without this, is_ssl() is false and
 // WordPress prints http:// script URLs → mixed content blocked → Rhye preloader JS never runs (black screen).
 if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === strtolower( (string) $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ) {
