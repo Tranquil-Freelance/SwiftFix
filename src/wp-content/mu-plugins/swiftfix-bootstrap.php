@@ -465,7 +465,8 @@ function swiftfix_bootstrap_localize_remote_images_in_tree( &$arr ) {
 	}
 
 	if ( isset( $arr['url'] ) && is_string( $arr['url'] ) && preg_match( '#^https?://#i', $arr['url'] ) ) {
-		$looks_like_image = (bool) preg_match( '#\.(jpe?g|png|gif|webp|svg)(\?|#|$)#i', $arr['url'] );
+		// Use ~ delimiter so '#' in URL fragments does not end the pattern early.
+		$looks_like_image = (bool) preg_match( '~\.(jpe?g|png|gif|webp|svg)(\?|#|$)~i', $arr['url'] );
 		if ( $looks_like_image ) {
 			if ( ! empty( $arr['id'] ) && wp_attachment_is_image( (int) $arr['id'] ) ) {
 				$u = wp_get_attachment_url( (int) $arr['id'] );
