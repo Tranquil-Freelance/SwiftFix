@@ -398,6 +398,34 @@ function swiftfix_bootstrap_http_timeout_60() {
 }
 
 /**
+ * media_handle_sideload() needs a user with upload_files; front-end init often has no user.
+ *
+ * @return void
+ */
+function swiftfix_bootstrap_elevate_user_for_media_upload() {
+	if ( current_user_can( 'upload_files' ) ) {
+		return;
+	}
+	static $done = false;
+	if ( $done ) {
+		return;
+	}
+	$done = true;
+	$user_ids = get_users(
+		array(
+			'role'    => 'administrator',
+			'number'  => 1,
+			'fields'  => 'ID',
+			'orderby' => 'ID',
+			'order'   => 'ASC',
+		)
+	);
+	if ( ! empty( $user_ids ) ) {
+		wp_set_current_user( (int) $user_ids[0] );
+	}
+}
+
+/**
  * Download a remote image into the Media Library (cached per request by URL).
  *
  * @param string $url Remote image URL.
@@ -411,6 +439,8 @@ function swiftfix_bootstrap_ensure_local_attachment( $url ) {
 	if ( isset( $cache[ $url ] ) ) {
 		return $cache[ $url ];
 	}
+
+	swiftfix_bootstrap_elevate_user_for_media_upload();
 
 	require_once ABSPATH . 'wp-admin/includes/file.php';
 	require_once ABSPATH . 'wp-admin/includes/media.php';
@@ -440,6 +470,7 @@ function swiftfix_bootstrap_ensure_local_attachment( $url ) {
 
 	$attachment_id = media_handle_sideload( $file_array, 0 );
 	if ( is_wp_error( $attachment_id ) ) {
+		error_log( 'SwiftFix sideload media_handle_sideload: ' . $attachment_id->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		if ( is_string( $tmp ) && is_file( $tmp ) ) {
 			unlink( $tmp );
 		}
@@ -584,7 +615,8 @@ function swiftfix_bootstrap_attach_portfolio_featured_images() {
  * @return void
  */
 function swiftfix_bootstrap_migrate_remote_images() {
-	if ( get_option( 'swiftfix_remote_images_localized_v1' ) ) {
+	// v1 could be set after a broken regex pass (no images fixed). v2 re-runs localization once.
+	if ( get_option( 'swiftfix_remote_images_localized_v2' ) ) {
 		return;
 	}
 	if ( ! get_option( 'swiftfix_full_bootstrap_done' ) ) {
@@ -633,7 +665,8 @@ function swiftfix_bootstrap_migrate_remote_images() {
 		if ( class_exists( '\Elementor\Plugin' ) ) {
 			\Elementor\Plugin::$instance->files_manager->clear_cache();
 		}
-		update_option( 'swiftfix_remote_images_localized_v1', true );
+		update_option( 'swiftfix_remote_images_localized_v2', true );
+		delete_option( 'swiftfix_remote_images_localized_v1' );
 	} catch ( Throwable $e ) {
 		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
 		error_log( 'SwiftFix migrate images: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
