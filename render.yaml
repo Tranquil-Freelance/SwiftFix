@@ -15,6 +15,10 @@ services:
       mountPath: /var/www/html/wp-content/uploads
       sizeGB: 5
     envVars:
+      # Optional: set SWIFTFIX_BOOTSTRAP_READING to "true" so the first wp-admin visit creates
+      # Home + Blog pages and sets Settings → Reading to a static homepage (still build layout in Elementor).
+      # - key: SWIFTFIX_BOOTSTRAP_READING
+      #   value: "true"
       # Postgres fromDatabase supports user/password/database/connectionString — not "host"
       # (host is for web/private services). Use the private connection URL for libpq.
       - key: DATABASE_URL
