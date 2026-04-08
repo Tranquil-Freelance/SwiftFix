@@ -6,6 +6,7 @@
  * Theme-only workflow: delete this file from mu-plugins, or in wp-config.php (before wp-settings.php) add:
  *   define( 'SWIFTFIX_AUTO_SETUP', false );
  * Also supported: env SWIFTFIX_AUTO_SETUP=0 (e.g. Render). Re-run automation: delete options swiftfix_full_bootstrap_done and swiftfix_bootstrap_extra_pages_seeded (and swiftfix_portfolio_seed_done if needed).
+ * Demo images: rhye-child/assets/bundled/ (rewritten into Elementor data; no CDN on Render). Re-run rewrite: delete option swiftfix_remote_images_localized_v3.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -319,7 +320,11 @@ function swiftfix_bootstrap_seed_portfolio_if_needed() {
 			continue;
 		}
 		if ( isset( $urls[ $i ] ) ) {
-			$aid = swiftfix_bootstrap_ensure_local_attachment( $urls[ $i ] );
+			$base = basename( wp_parse_url( $urls[ $i ], PHP_URL_PATH ) );
+			$aid  = $base ? swiftfix_bootstrap_attachment_from_theme_bundled( $base ) : 0;
+			if ( ! $aid ) {
+				$aid = swiftfix_bootstrap_ensure_local_attachment( $urls[ $i ] );
+			}
 			if ( $aid > 0 ) {
 				set_post_thumbnail( (int) $pid, $aid );
 			}
@@ -423,6 +428,177 @@ function swiftfix_bootstrap_elevate_user_for_media_upload() {
 	if ( ! empty( $user_ids ) ) {
 		wp_set_current_user( (int) $user_ids[0] );
 	}
+}
+
+/**
+ * Theme-shipped demo images (no outbound HTTP needed on Render).
+ *
+ * @return string Absolute filesystem path to bundled folder (no trailing slash).
+ */
+function swiftfix_bootstrap_theme_bundled_dir() {
+	return trailingslashit( get_stylesheet_directory() ) . 'assets/bundled';
+}
+
+/**
+ * @param string $basename File name in assets/bundled/.
+ * @return bool
+ */
+function swiftfix_bootstrap_theme_bundled_file_exists( $basename ) {
+	if ( ! is_string( $basename ) || $basename === '' || false !== strpos( $basename, '..' ) ) {
+		return false;
+	}
+	$path = trailingslashit( swiftfix_bootstrap_theme_bundled_dir() ) . $basename;
+
+	return is_readable( $path );
+}
+
+/**
+ * @param string $url URL or path fragment.
+ * @return bool
+ */
+function swiftfix_bootstrap_is_demo_cdn_asset_url( $url ) {
+	return is_string( $url ) && false !== strpos( $url, 'artemsemkin.com/rhye/wp/wp-content/uploads/sites/9/' );
+}
+
+/**
+ * Point Elementor image URLs at child theme files; drop stale attachment ids from the export.
+ *
+ * @param array<string,mixed> $arr Decoded Elementor JSON fragment.
+ * @return void
+ */
+function swiftfix_bootstrap_rewrite_demo_urls_to_theme_assets_walk( &$arr ) {
+	if ( ! is_array( $arr ) ) {
+		return;
+	}
+	foreach ( $arr as $k => &$v ) {
+		if ( is_array( $v ) ) {
+			swiftfix_bootstrap_rewrite_demo_urls_to_theme_assets_walk( $v );
+		}
+	}
+	unset( $v );
+
+	if ( isset( $arr['url'] ) && is_string( $arr['url'] ) && swiftfix_bootstrap_is_demo_cdn_asset_url( $arr['url'] ) ) {
+		$path = wp_parse_url( $arr['url'], PHP_URL_PATH );
+		$base = is_string( $path ) ? basename( $path ) : '';
+		if ( $base !== '' && swiftfix_bootstrap_theme_bundled_file_exists( $base ) ) {
+			$arr['url'] = trailingslashit( get_stylesheet_directory_uri() ) . 'assets/bundled/' . $base;
+			unset( $arr['id'] );
+		}
+	}
+}
+
+/**
+ * @param array<string,mixed> $data Decoded Elementor template.
+ * @return void
+ */
+function swiftfix_bootstrap_rewrite_demo_urls_to_theme_assets_in_data( array &$data ) {
+	if ( ! empty( $data['content'] ) && is_array( $data['content'] ) ) {
+		swiftfix_bootstrap_rewrite_demo_urls_to_theme_assets_walk( $data['content'] );
+	}
+	$page_settings = isset( $data['page_settings'] ) ? $data['page_settings'] : null;
+	if ( is_string( $page_settings ) && $page_settings !== '' ) {
+		$page_settings = json_decode( $page_settings, true );
+	}
+	if ( is_array( $page_settings ) ) {
+		swiftfix_bootstrap_rewrite_demo_urls_to_theme_assets_walk( $page_settings );
+		$data['page_settings'] = $page_settings;
+	}
+}
+
+/**
+ * @param string $abs Absolute path inside uploads.
+ * @return int Attachment ID or 0.
+ */
+function swiftfix_bootstrap_find_attachment_by_abspath( $abs ) {
+	$upload  = wp_upload_dir();
+	$basedir = wp_normalize_path( trailingslashit( $upload['basedir'] ) );
+	$absnorm = wp_normalize_path( $abs );
+	if ( strpos( $absnorm, $basedir ) !== 0 ) {
+		return 0;
+	}
+	$relative = ltrim( substr( $absnorm, strlen( $basedir ) ), '/' );
+	global $wpdb;
+	$id = $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value = %s LIMIT 1",
+			$relative
+		)
+	);
+
+	return $id ? (int) $id : 0;
+}
+
+/**
+ * Copy a file from the child theme bundle into uploads and create an attachment (for featured images).
+ *
+ * @param string $basename File in assets/bundled/.
+ * @return int Attachment ID or 0.
+ */
+function swiftfix_bootstrap_attachment_from_theme_bundled( $basename ) {
+	if ( ! is_string( $basename ) || $basename === '' || false !== strpos( $basename, '..' ) ) {
+		return 0;
+	}
+	static $cache = array();
+	if ( isset( $cache[ $basename ] ) ) {
+		return $cache[ $basename ];
+	}
+	$src = trailingslashit( swiftfix_bootstrap_theme_bundled_dir() ) . $basename;
+	if ( ! is_readable( $src ) ) {
+		$cache[ $basename ] = 0;
+
+		return 0;
+	}
+
+	swiftfix_bootstrap_elevate_user_for_media_upload();
+
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	$upload = wp_upload_dir();
+	if ( ! empty( $upload['error'] ) ) {
+		$cache[ $basename ] = 0;
+
+		return 0;
+	}
+
+	$dest = trailingslashit( $upload['path'] ) . sanitize_file_name( $basename );
+	if ( is_file( $dest ) ) {
+		$existing = swiftfix_bootstrap_find_attachment_by_abspath( $dest );
+		if ( $existing > 0 ) {
+			$cache[ $basename ] = $existing;
+
+			return $existing;
+		}
+	}
+
+	if ( ! is_file( $dest ) && ! copy( $src, $dest ) ) {
+		$cache[ $basename ] = 0;
+
+		return 0;
+	}
+
+	$ftype = wp_check_filetype( $dest, null );
+	$mime  = is_array( $ftype ) && ! empty( $ftype['type'] ) ? $ftype['type'] : 'image/jpeg';
+
+	$attachment = array(
+		'post_mime_type' => $mime,
+		'post_title'     => sanitize_file_name( pathinfo( $basename, PATHINFO_FILENAME ) ),
+		'post_status'    => 'inherit',
+	);
+
+	$attach_id = wp_insert_attachment( $attachment, $dest );
+	if ( is_wp_error( $attach_id ) || ! $attach_id ) {
+		$cache[ $basename ] = 0;
+
+		return 0;
+	}
+
+	$meta = wp_generate_attachment_metadata( $attach_id, $dest );
+	wp_update_attachment_metadata( $attach_id, $meta );
+
+	$cache[ $basename ] = (int) $attach_id;
+
+	return (int) $attach_id;
 }
 
 /**
@@ -538,6 +714,7 @@ function swiftfix_bootstrap_localize_remote_images_in_tree( &$arr ) {
  * @return void
  */
 function swiftfix_bootstrap_localize_remote_images_in_data( array &$data ) {
+	swiftfix_bootstrap_rewrite_demo_urls_to_theme_assets_in_data( $data );
 	if ( ! empty( $data['content'] ) && is_array( $data['content'] ) ) {
 		swiftfix_bootstrap_localize_remote_images_in_tree( $data['content'] );
 	}
@@ -564,6 +741,7 @@ function swiftfix_bootstrap_localize_post_elementor_images( $post_id ) {
 	if ( ! is_array( $decoded ) ) {
 		return;
 	}
+	swiftfix_bootstrap_rewrite_demo_urls_to_theme_assets_walk( $decoded );
 	swiftfix_bootstrap_localize_remote_images_in_tree( $decoded );
 	$encoded = wp_json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 	update_post_meta( $post_id, '_elementor_data', wp_slash( $encoded ) );
@@ -602,8 +780,12 @@ function swiftfix_bootstrap_attach_portfolio_featured_images() {
 		if ( has_post_thumbnail( $p->ID ) ) {
 			continue;
 		}
-		$url = $urls[ $i % $n ];
-		$aid = swiftfix_bootstrap_ensure_local_attachment( $url );
+		$url  = $urls[ $i % $n ];
+		$base = basename( wp_parse_url( $url, PHP_URL_PATH ) );
+		$aid  = $base ? swiftfix_bootstrap_attachment_from_theme_bundled( $base ) : 0;
+		if ( ! $aid ) {
+			$aid = swiftfix_bootstrap_ensure_local_attachment( $url );
+		}
 		if ( $aid > 0 ) {
 			set_post_thumbnail( (int) $p->ID, $aid );
 		}
@@ -615,8 +797,8 @@ function swiftfix_bootstrap_attach_portfolio_featured_images() {
  * @return void
  */
 function swiftfix_bootstrap_migrate_remote_images() {
-	// v1 could be set after a broken regex pass (no images fixed). v2 re-runs localization once.
-	if ( get_option( 'swiftfix_remote_images_localized_v2' ) ) {
+	// v3: rewrite demo CDN URLs to child theme assets/bundled (works on Render without outbound image HTTP).
+	if ( get_option( 'swiftfix_remote_images_localized_v3' ) ) {
 		return;
 	}
 	if ( ! get_option( 'swiftfix_full_bootstrap_done' ) ) {
@@ -665,7 +847,8 @@ function swiftfix_bootstrap_migrate_remote_images() {
 		if ( class_exists( '\Elementor\Plugin' ) ) {
 			\Elementor\Plugin::$instance->files_manager->clear_cache();
 		}
-		update_option( 'swiftfix_remote_images_localized_v2', true );
+		update_option( 'swiftfix_remote_images_localized_v3', true );
+		delete_option( 'swiftfix_remote_images_localized_v2' );
 		delete_option( 'swiftfix_remote_images_localized_v1' );
 	} catch ( Throwable $e ) {
 		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
