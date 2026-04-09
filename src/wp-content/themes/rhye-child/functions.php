@@ -6,6 +6,8 @@
  * @link https://developer.wordpress.org/themes/basics/theme-functions/
  */
 
+require_once get_stylesheet_directory() . '/inc/swiftfix-landing-helpers.php';
+
 add_action( 'after_setup_theme', 'swiftfix_child_setup', 15 );
 function swiftfix_child_setup() {
 	register_nav_menus(
@@ -52,6 +54,12 @@ function swiftfix_enqueue_landing_assets() {
 	if ( ! is_page_template( 'page-services-landing.php' ) ) {
 		return;
 	}
+	wp_enqueue_style(
+		'swiftfix-landing-shell',
+		get_stylesheet_directory_uri() . '/assets/css/swiftfix-landing-shell.css',
+		array( 'rhye-child-style' ),
+		wp_get_theme()->get( 'Version' )
+	);
 	wp_enqueue_script(
 		'swiftfix-landing',
 		get_stylesheet_directory_uri() . '/assets/js/swiftfix-landing.js',
@@ -59,6 +67,39 @@ function swiftfix_enqueue_landing_assets() {
 		wp_get_theme()->get( 'Version' ),
 		true
 	);
+}
+
+add_filter( 'body_class', 'swiftfix_body_class_landing' );
+function swiftfix_body_class_landing( $classes ) {
+	if ( is_page_template( 'page-services-landing.php' ) ) {
+		$classes[] = 'swiftfix-landing-page';
+	}
+	return $classes;
+}
+
+add_action( 'wp_head', 'swiftfix_print_local_business_schema', 4 );
+function swiftfix_print_local_business_schema() {
+	if ( ! is_page_template( 'page-services-landing.php' ) ) {
+		return;
+	}
+	$name   = get_theme_mod( 'sf_business_name', 'SwiftFix' );
+	$phone  = preg_replace( '/\s+/', '', get_theme_mod( 'sf_phone', '0800 123 4567' ) );
+	$email  = get_theme_mod( 'sf_email', 'hello@swiftfix.co.uk' );
+	$region = get_theme_mod( 'sf_area_served', 'Greater London' );
+	$schema = array(
+		'@context'    => 'https://schema.org',
+		'@type'       => 'HomeAndConstructionBusiness',
+		'name'        => $name,
+		'url'         => home_url( '/' ),
+		'telephone'   => $phone,
+		'email'       => $email,
+		'areaServed'  => $region,
+		'description' => wp_strip_all_tags( get_theme_mod( 'sf_hero_sub', '' ) ),
+	);
+	if ( '' === $schema['description'] ) {
+		unset( $schema['description'] );
+	}
+	echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
 }
 
 /**
@@ -261,5 +302,278 @@ function swiftfix_customize_register( $wp_customize ) {
 		'label'   => __( 'Hide mobile “Call now” bar on Elementor pages', 'rhye-child' ),
 		'section' => 'swiftfix_settings',
 		'type'    => 'checkbox',
+	) );
+
+	$wp_customize->add_setting( 'sf_topbar_title', array(
+		'default'           => '24/7 Emergency Call-Outs',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_topbar_title', array(
+		'label'   => __( 'Landing: top bar title', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_nav_cta_label', array(
+		'default'           => 'Book Now',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_nav_cta_label', array(
+		'label'   => __( 'Landing: nav CTA button', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_hero_badge', array(
+		'default'           => 'Trusted by 1,400+ UK homeowners',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_hero_badge', array(
+		'label'   => __( 'Landing: hero badge', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_hero_heading', array(
+		'default'           => 'Your home deserves the best tradespeople.',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_hero_heading', array(
+		'label'   => __( 'Landing: hero headline', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_hero_sub', array(
+		'default'           => 'Certified electricians, plumbers, heating engineers & builders — all under one roof. No call-out fee, no hidden costs.',
+		'sanitize_callback' => 'sanitize_textarea_field',
+	) );
+	$wp_customize->add_control( 'sf_hero_sub', array(
+		'label'   => __( 'Landing: hero subtext', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'textarea',
+	) );
+
+	$wp_customize->add_setting( 'sf_hero_img_alt', array(
+		'default'           => 'Friendly tradesperson working in a modern home',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_hero_img_alt', array(
+		'label'   => __( 'Landing: hero image alt text', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_hero_btn_primary', array(
+		'default'           => 'Get Free Quote',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_hero_btn_primary', array(
+		'label'   => __( 'Landing: hero primary button', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_hero_btn_secondary', array(
+		'default'           => 'Our Services',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_hero_btn_secondary', array(
+		'label'   => __( 'Landing: hero secondary button', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_trust_google_suffix', array(
+		'default'           => 'Google',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_trust_google_suffix', array(
+		'label'   => __( 'Landing: rating chip suffix (e.g. Google)', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_trust_chip_2', array(
+		'default'           => 'Gas Safe',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_trust_chip_2', array(
+		'label'   => __( 'Landing: trust chip 2', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_trust_chip_3', array(
+		'default'           => 'NICEIC Approved',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_trust_chip_3', array(
+		'label'   => __( 'Landing: trust chip 3', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_trust_chip_4', array(
+		'default'           => 'Fully Insured',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_trust_chip_4', array(
+		'label'   => __( 'Landing: trust chip 4', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_services_label', array(
+		'default'           => 'Services',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_services_label', array(
+		'label'   => __( 'Landing: services section label', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_services_title', array(
+		'default'           => 'What we can help with',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_services_title', array(
+		'label'   => __( 'Landing: services title', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_services_sub', array(
+		'default'           => 'From quick fixes to full installations — one team that does it all, properly.',
+		'sanitize_callback' => 'sanitize_textarea_field',
+	) );
+	$wp_customize->add_control( 'sf_services_sub', array(
+		'label'   => __( 'Landing: services intro', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'textarea',
+	) );
+
+	$wp_customize->add_setting( 'sf_how_label', array(
+		'default'           => 'Simple Process',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_how_label', array(
+		'label'   => __( 'Landing: how-it-works label', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_how_title', array(
+		'default'           => 'How it works',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_how_title', array(
+		'label'   => __( 'Landing: how-it-works title', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_reviews_label', array(
+		'default'           => 'Reviews',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_reviews_label', array(
+		'label'   => __( 'Landing: reviews sidebar label (hidden on layout)', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_rating_label', array(
+		'default'           => 'out of 5',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_rating_label', array(
+		'label'   => __( 'Landing: rating subtitle', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_reviews_count_label', array(
+		'default'           => 'verified reviews',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_reviews_count_label', array(
+		'label'   => __( 'Landing: review count suffix', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_cta_heading', array(
+		'default'           => 'Ready to get started?',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_cta_heading', array(
+		'label'   => __( 'Landing: CTA heading', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_cta_sub', array(
+		'default'           => 'Free, no-obligation quotes. We cover all of Greater London & surrounding areas.',
+		'sanitize_callback' => 'sanitize_textarea_field',
+	) );
+	$wp_customize->add_control( 'sf_cta_sub', array(
+		'label'   => __( 'Landing: CTA intro', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'textarea',
+	) );
+
+	$wp_customize->add_setting( 'sf_cta_quote_btn', array(
+		'default'           => 'Request a Free Quote',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_cta_quote_btn', array(
+		'label'   => __( 'Landing: CTA email button', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_cta_services_btn', array(
+		'default'           => 'View Services',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_cta_services_btn', array(
+		'label'   => __( 'Landing: CTA secondary button', 'rhye-child' ),
+		'section' => 'swiftfix_settings',
+		'type'    => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_area_served', array(
+		'default'           => 'Greater London',
+		'sanitize_callback' => 'sanitize_text_field',
+	) );
+	$wp_customize->add_control( 'sf_area_served', array(
+		'label'       => __( 'Service area (SEO / schema)', 'rhye-child' ),
+		'description' => __( 'Used in structured data for local search.', 'rhye-child' ),
+		'section'     => 'swiftfix_settings',
+		'type'        => 'text',
+	) );
+
+	$wp_customize->add_setting( 'sf_privacy_url', array(
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
+	) );
+	$wp_customize->add_control( 'sf_privacy_url', array(
+		'label'       => __( 'Landing: Privacy link URL', 'rhye-child' ),
+		'description' => __( 'Leave empty to use /privacy-policy/', 'rhye-child' ),
+		'section'     => 'swiftfix_settings',
+		'type'        => 'url',
+	) );
+
+	$wp_customize->add_setting( 'sf_terms_url', array(
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
+	) );
+	$wp_customize->add_control( 'sf_terms_url', array(
+		'label'       => __( 'Landing: Terms link URL', 'rhye-child' ),
+		'description' => __( 'Leave empty to use /terms/', 'rhye-child' ),
+		'section'     => 'swiftfix_settings',
+		'type'        => 'url',
 	) );
 }
