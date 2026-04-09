@@ -1,0 +1,67 @@
+/**
+ * SwiftFix + Rhye: keep Elementor-built pages readable when core widgets or assets are thin.
+ */
+.elementor img,
+.e-con img,
+.elementor-widget-image img,
+.elementor-widget-rhye-widget-team-member img {
+	max-width: 100%;
+	height: auto;
+	vertical-align: middle;
+}
+
+/* Rhye services / portfolio sliders often collapse without slides */
+.elementor-widget-rhye-widget-services-slider .swiper,
+.elementor-widget-rhye-widget-services-slider .swiper-container {
+	min-height: 280px;
+}
+
+.elementor-widget-rhye-widget-services-slider .swiper-slide {
+	min-height: 200px;
+}
+
+/* Team grid: keep cards from zero-height when avatar missing */
+.elementor-widget-rhye-widget-team-member .team-member__avatar,
+.elementor-widget-rhye-widget-team-member figure {
+	min-height: 1px;
+}
+
+/* Mobile call strip (see wp_footer in functions.php) */
+.sf-elementor-cta {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 99998;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	padding: 12px 16px;
+	background: linear-gradient(180deg, rgba(26, 43, 74, 0.95), #1a2b4a);
+	box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+	font-family: system-ui, -apple-system, sans-serif;
+	font-size: 0.9rem;
+}
+.sf-elementor-cta a {
+	color: #fff;
+	font-weight: 700;
+	text-decoration: none;
+}
+.sf-elementor-cta a.sf-elementor-cta__call {
+	background: #e8913a;
+	color: #fff;
+	padding: 10px 20px;
+	border-radius: 999px;
+}
+@media (min-width: 901px) {
+	.sf-elementor-cta {
+		display: none;
+	}
+}
+
+@media (max-width: 900px) {
+	body.swiftfix-elementor-cta-on {
+		padding-bottom: 76px;
+	}
+}

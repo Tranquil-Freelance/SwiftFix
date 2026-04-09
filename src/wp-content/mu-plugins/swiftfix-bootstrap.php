@@ -7,6 +7,7 @@
  *   define( 'SWIFTFIX_AUTO_SETUP', false );
  * Also supported: env SWIFTFIX_AUTO_SETUP=0 (e.g. Render). Re-run automation: delete options swiftfix_full_bootstrap_done and swiftfix_bootstrap_extra_pages_seeded (and swiftfix_portfolio_seed_done if needed).
  * Demo images: rhye-child/assets/bundled/ (rewritten into Elementor data; no CDN on Render). Re-run rewrite: delete option swiftfix_remote_images_localized_v3.
+ * Homepage template: default is SwiftFix PHP landing (page-services-landing.php). Use Elementor home instead: env SWIFTFIX_HOME_TEMPLATE=elementor
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -28,6 +29,8 @@ add_action( 'init', 'swiftfix_bootstrap_run', 25 );
 add_action( 'init', 'swiftfix_bootstrap_extra_pages_run', 40 );
 // One-time: download remote Elementor images + portfolio thumbs (sites that imported before sideload existed).
 add_action( 'init', 'swiftfix_bootstrap_migrate_remote_images', 43 );
+// One-time: switch front page to SwiftFix PHP landing (existing installs).
+add_action( 'init', 'swiftfix_bootstrap_one_time_php_home', 46 );
 
 /**
  * Fix Home page meta if bootstrap stored _elementor_page_settings as JSON text (Elementor 3.x fatals).
@@ -170,6 +173,8 @@ function swiftfix_bootstrap_execute() {
 	swiftfix_bootstrap_import_bundled_elementor_pages();
 	swiftfix_bootstrap_seed_portfolio_if_needed();
 	swiftfix_bootstrap_attach_portfolio_featured_images();
+	swiftfix_bootstrap_assign_home_template( (int) $home_id );
+	swiftfix_bootstrap_create_primary_menu();
 
 	flush_rewrite_rules( false );
 
@@ -367,8 +372,10 @@ function swiftfix_bootstrap_extra_pages_run() {
 		swiftfix_bootstrap_import_bundled_elementor_pages();
 		swiftfix_bootstrap_seed_portfolio_if_needed();
 		swiftfix_bootstrap_attach_portfolio_featured_images();
+		swiftfix_bootstrap_create_primary_menu();
 		$home_id = (int) get_option( 'page_on_front' );
 		if ( $home_id ) {
+			swiftfix_bootstrap_assign_home_template( $home_id );
 			swiftfix_bootstrap_polish_home_title( $home_id );
 		}
 		flush_rewrite_rules( false );
@@ -854,6 +861,159 @@ function swiftfix_bootstrap_migrate_remote_images() {
 		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
 		error_log( 'SwiftFix migrate images: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
+}
+
+/**
+ * @param string $slug Page slug.
+ * @return int
+ */
+function swiftfix_bootstrap_get_page_id_by_slug( $slug ) {
+	$posts = get_posts(
+		array(
+			'name'           => $slug,
+			'post_type'      => 'page',
+			'post_status'    => 'any',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+		)
+	);
+
+	return ! empty( $posts ) ? (int) $posts[0] : 0;
+}
+
+/**
+ * Use full SwiftFix PHP landing for front page (nav, hero, services, reviews). Elementor: set SWIFTFIX_HOME_TEMPLATE=elementor.
+ *
+ * @param int $home_id Front page ID.
+ * @return void
+ */
+function swiftfix_bootstrap_assign_home_template( $home_id ) {
+	$mode = getenv( 'SWIFTFIX_HOME_TEMPLATE' );
+	$s    = is_string( $mode ) ? strtolower( trim( $mode ) ) : '';
+	if ( 'elementor' === $s || 'builder' === $s ) {
+		update_post_meta( (int) $home_id, '_wp_page_template', 'default' );
+
+		return;
+	}
+	update_post_meta( (int) $home_id, '_wp_page_template', 'page-services-landing.php' );
+}
+
+/**
+ * @return void
+ */
+function swiftfix_bootstrap_one_time_php_home() {
+	if ( get_option( 'swiftfix_php_home_assigned_v1' ) ) {
+		return;
+	}
+	if ( ! get_option( 'swiftfix_full_bootstrap_done' ) ) {
+		return;
+	}
+	if ( ! function_exists( 'is_blog_installed' ) || ! is_blog_installed() ) {
+		return;
+	}
+	if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
+		return;
+	}
+	if ( wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		return;
+	}
+	$home_id = (int) get_option( 'page_on_front' );
+	if ( ! $home_id ) {
+		return;
+	}
+	swiftfix_bootstrap_assign_home_template( $home_id );
+	update_option( 'swiftfix_php_home_assigned_v1', true );
+}
+
+/**
+ * @param int $menu_id Nav menu term ID.
+ * @return void
+ */
+function swiftfix_bootstrap_set_swiftfix_menu_location( $menu_id ) {
+	$locations = get_theme_mod( 'nav_menu_locations', array() );
+	if ( ! is_array( $locations ) ) {
+		$locations = array();
+	}
+	$locations['swiftfix_primary'] = (int) $menu_id;
+	set_theme_mod( 'nav_menu_locations', $locations );
+}
+
+/**
+ * @return void
+ */
+function swiftfix_bootstrap_create_primary_menu() {
+	if ( get_option( 'swiftfix_nav_menu_created' ) ) {
+		return;
+	}
+	swiftfix_bootstrap_elevate_user_for_media_upload();
+	if ( ! function_exists( 'wp_create_nav_menu' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
+	}
+	$menu_name = 'SwiftFix Primary';
+	$menu_obj  = wp_get_nav_menu_object( $menu_name );
+	if ( $menu_obj ) {
+		$menu_id = (int) $menu_obj->term_id;
+	} else {
+		$created = wp_create_nav_menu( $menu_name );
+		if ( is_wp_error( $created ) ) {
+			return;
+		}
+		$menu_id = (int) $created;
+	}
+	$existing_items = wp_get_nav_menu_items( $menu_id );
+	if ( ! empty( $existing_items ) ) {
+		swiftfix_bootstrap_set_swiftfix_menu_location( $menu_id );
+		update_option( 'swiftfix_nav_menu_created', true );
+
+		return;
+	}
+
+	wp_update_nav_menu_item(
+		$menu_id,
+		0,
+		array(
+			'menu-item-title'  => 'Home',
+			'menu-item-url'    => home_url( '/' ),
+			'menu-item-status' => 'publish',
+			'menu-item-type'   => 'custom',
+		)
+	);
+	$blog = (int) get_option( 'page_for_posts' );
+	if ( $blog ) {
+		wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-title'     => 'Blog',
+				'menu-item-object-id' => $blog,
+				'menu-item-object'    => 'page',
+				'menu-item-type'      => 'post_type',
+				'menu-item-status'    => 'publish',
+			)
+		);
+	}
+	foreach ( array( 'services-02' => 'Services', 'contacts-02' => 'Contact' ) as $slug => $title ) {
+		$pid = swiftfix_bootstrap_get_page_id_by_slug( $slug );
+		if ( $pid ) {
+			wp_update_nav_menu_item(
+				$menu_id,
+				0,
+				array(
+					'menu-item-title'     => $title,
+					'menu-item-object-id' => $pid,
+					'menu-item-object'    => 'page',
+					'menu-item-type'      => 'post_type',
+					'menu-item-status'    => 'publish',
+				)
+			);
+		}
+	}
+
+	swiftfix_bootstrap_set_swiftfix_menu_location( $menu_id );
+	update_option( 'swiftfix_nav_menu_created', true );
 }
 
 /**

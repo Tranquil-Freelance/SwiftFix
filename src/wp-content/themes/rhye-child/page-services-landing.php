@@ -15,6 +15,7 @@ $sf_rating   = get_theme_mod( 'sf_rating', '4.9' );
 $sf_reviews  = get_theme_mod( 'sf_review_count', '620' );
 $sf_reg      = get_theme_mod( 'sf_reg_info', 'Registered in England &amp; Wales. Gas Safe Reg. No. 123456.' );
 $sf_phone_href = 'tel:' . preg_replace( '/\s+/', '', $sf_phone );
+$parts         = explode( ' ', $sf_name, 2 );
 
 // --- Hero image: use local file if it exists, fallback to Unsplash ---
 $hero_local = get_stylesheet_directory() . '/images/hero-tradesman.jpg';
@@ -39,8 +40,6 @@ get_header();
   <nav class="sf-nav">
     <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="sf-logo">
       <?php
-        // Split business name: first word normal, second word highlighted
-        $parts = explode( ' ', $sf_name, 2 );
         if ( isset( $parts[1] ) ) {
           echo esc_html( $parts[0] ) . '<span>' . esc_html( $parts[1] ) . '</span>';
         } else {
@@ -60,12 +59,21 @@ get_header();
       <span></span><span></span><span></span>
     </button>
 
-    <ul class="sf-nav__links" id="sf-nav-links">
-      <li><a href="#services" class="sf-scroll">Services</a></li>
-      <li><a href="#how" class="sf-scroll">How It Works</a></li>
-      <li><a href="#reviews" class="sf-scroll">Reviews</a></li>
-      <li><a href="#contact" class="sf-scroll">Contact</a></li>
-    </ul>
+    <?php
+    if ( has_nav_menu( 'swiftfix_primary' ) ) {
+      wp_nav_menu(
+        array(
+          'theme_location' => 'swiftfix_primary',
+          'container'      => false,
+          'fallback_cb'    => false,
+          'depth'          => 1,
+          'items_wrap'     => '<ul id="sf-nav-links" class="sf-nav__links" role="list">%3$s</ul>',
+        )
+      );
+    } else {
+      swiftfix_fallback_primary_nav();
+    }
+    ?>
     <a href="#contact" class="sf-btn sf-btn-amber sf-nav__cta sf-scroll">Book Now</a>
   </nav>
 
@@ -123,21 +131,21 @@ get_header();
           <div class="sf-service-icon sf-service-icon--cyan">&#128167;</div>
           <h3>Plumbing</h3>
           <p>Burst pipes, leaks, blocked drains, bathroom fitting, tap replacement and full renovations.</p>
-          <a href="#" class="sf-link">Learn more &rarr;</a>
+          <a href="#contact" class="sf-link sf-scroll">Learn more &rarr;</a>
         </div>
 
         <div class="sf-service-card">
           <div class="sf-service-icon sf-service-icon--orange">&#128293;</div>
           <h3>Heating &amp; Gas</h3>
           <p>Boiler servicing, breakdowns, radiator installs, central heating systems and smart thermostats.</p>
-          <a href="#" class="sf-link">Learn more &rarr;</a>
+          <a href="#contact" class="sf-link sf-scroll">Learn more &rarr;</a>
         </div>
 
         <div class="sf-service-card">
           <div class="sf-service-icon sf-service-icon--green">&#127968;</div>
           <h3>Building &amp; Renovation</h3>
           <p>Extensions, loft conversions, kitchen fitting, plastering, tiling and property maintenance.</p>
-          <a href="#" class="sf-link">Learn more &rarr;</a>
+          <a href="#contact" class="sf-link sf-scroll">Learn more &rarr;</a>
         </div>
 
       </div>
@@ -244,68 +252,5 @@ get_header();
   </footer>
 
 </div><!-- /.sf -->
-
-<!-- SwiftFix interactive scripts -->
-<script>
-(function() {
-  /* ---- Mobile menu toggle ---- */
-  var toggle = document.querySelector('.sf-menu-toggle');
-  var nav    = document.getElementById('sf-nav-links');
-  if (toggle && nav) {
-    toggle.addEventListener('click', function() {
-      var expanded = this.getAttribute('aria-expanded') === 'true';
-      this.setAttribute('aria-expanded', String(!expanded));
-      this.classList.toggle('sf-menu-toggle--active');
-      nav.classList.toggle('sf-nav__links--open');
-    });
-    nav.querySelectorAll('a').forEach(function(link) {
-      link.addEventListener('click', function() {
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.classList.remove('sf-menu-toggle--active');
-        nav.classList.remove('sf-nav__links--open');
-      });
-    });
-  }
-
-  /* ---- Smooth scroll for all anchor links ---- */
-  document.querySelectorAll('.sf a[href^="#"], .sf-scroll').forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      var href = this.getAttribute('href');
-      if (!href || href === '#' || href.length < 2) return;
-      var target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        e.stopPropagation();
-        var navHeight = document.querySelector('.sf-nav') ? document.querySelector('.sf-nav').offsetHeight : 0;
-        var topbarHeight = document.querySelector('.sf-topbar') ? document.querySelector('.sf-topbar').offsetHeight : 0;
-        var offset = target.getBoundingClientRect().top + window.pageYOffset - navHeight - topbarHeight - 20;
-        window.scrollTo({ top: offset, behavior: 'smooth' });
-        history.replaceState(null, null, href);
-      }
-    });
-  });
-
-  /* ---- Prevent Barba.js / Rhye AJAX from intercepting our links ---- */
-  document.querySelectorAll('.sf a').forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      var href = this.getAttribute('href') || '';
-      // Let anchor links, tel:, and mailto: work natively
-      if (href.startsWith('#') || href.startsWith('tel:') || href.startsWith('mailto:')) {
-        e.stopPropagation();
-      }
-    });
-  });
-
-  /* ---- Service cards: entire card clickable ---- */
-  document.querySelectorAll('.sf-service-card').forEach(function(card) {
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', function(e) {
-      if (e.target.closest('a')) return;
-      var link = this.querySelector('.sf-link');
-      if (link) link.click();
-    });
-  });
-})();
-</script>
 
 <?php get_footer(); ?>
