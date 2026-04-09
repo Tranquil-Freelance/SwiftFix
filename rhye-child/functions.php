@@ -27,6 +27,31 @@ function rhye_child_enqueue_styles() {
 	);
 }
 
+/**
+ * Hero image for the Tradesman Services Landing template.
+ *
+ * Order: Customizer media → theme bundle → Unsplash fallback.
+ * We do not auto-load `images/hero-tradesman.jpg`; that path often picked up the wrong file.
+ *
+ * @return string Image URL.
+ */
+function swiftfix_get_services_landing_hero_url() {
+	$attachment_id = absint( get_theme_mod( 'sf_hero_image', 0 ) );
+	if ( $attachment_id ) {
+		$url = wp_get_attachment_image_url( $attachment_id, 'full' );
+		if ( $url ) {
+			return $url;
+		}
+	}
+
+	$bundled = get_stylesheet_directory() . '/assets/images/swiftfix-hero-default.jpg';
+	if ( file_exists( $bundled ) ) {
+		return get_stylesheet_directory_uri() . '/assets/images/swiftfix-hero-default.jpg';
+	}
+
+	return 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=840&h=880&fit=crop&crop=center&auto=format&q=80';
+}
+
 /* =====================================================
    CUSTOMIZER: SwiftFix Settings
    ===================================================== */
@@ -115,4 +140,21 @@ function swiftfix_customize_register( $wp_customize ) {
 		'section' => 'swiftfix_settings',
 		'type'    => 'text',
 	) );
+
+	$wp_customize->add_setting( 'sf_hero_image', array(
+		'default'           => 0,
+		'sanitize_callback' => 'absint',
+	) );
+	$wp_customize->add_control(
+		new WP_Customize_Media_Control(
+			$wp_customize,
+			'sf_hero_image',
+			array(
+				'label'       => __( 'Services landing hero image', 'rhye-child' ),
+				'description' => __( 'Optional. If empty, the theme uses a built-in tradesman photo.', 'rhye-child' ),
+				'section'     => 'swiftfix_settings',
+				'mime_type'   => 'image',
+			)
+		)
+	);
 }

@@ -16,13 +16,8 @@ $sf_reviews  = get_theme_mod( 'sf_review_count', '620' );
 $sf_reg      = get_theme_mod( 'sf_reg_info', 'Registered in England &amp; Wales. Gas Safe Reg. No. 123456.' );
 $sf_phone_href = 'tel:' . preg_replace( '/\s+/', '', $sf_phone );
 
-// --- Hero image: use local file if it exists, fallback to Unsplash ---
-$hero_local = get_stylesheet_directory() . '/images/hero-tradesman.jpg';
-if ( file_exists( $hero_local ) ) {
-	$hero_url = get_stylesheet_directory_uri() . '/images/hero-tradesman.jpg';
-} else {
-	$hero_url = 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=840&h=880&fit=crop&crop=faces&auto=format&q=80';
-}
+// --- Hero: Customizer → bundled default → Unsplash (see swiftfix_get_services_landing_hero_url). ---
+$hero_url = swiftfix_get_services_landing_hero_url();
 
 get_header();
 ?>
