@@ -16,6 +16,15 @@ $sf_reviews  = get_theme_mod( 'sf_review_count', '620' );
 $sf_reg      = get_theme_mod( 'sf_reg_info', 'Registered in England &amp; Wales. Gas Safe Reg. No. 123456.' );
 $sf_phone_href = 'tel:' . preg_replace( '/\s+/', '', $sf_phone );
 
+$parts = explode( ' ', $sf_name, 2 );
+
+$url_privacy  = swiftfix_find_page_url( array( 'privacy-policy', 'privacy' ), home_url( '/privacy-policy/' ) );
+$url_terms    = swiftfix_find_page_url( array( 'terms', 'terms-of-service', 'terms-and-conditions' ), home_url( '/terms/' ) );
+$url_contact  = swiftfix_find_page_url( array( 'contacts-02', 'contact', 'contact-us' ), home_url( '/#contact' ) );
+$url_services = swiftfix_find_page_url( array( 'services-02', 'services' ), home_url( '/#services' ) );
+
+$contact_scroll_class = ( false !== strpos( $url_contact, '#contact' ) ) ? 'sf-scroll' : '';
+
 // --- Hero: Customizer → bundled default → Unsplash (see swiftfix_get_services_landing_hero_url). ---
 $hero_url = swiftfix_get_services_landing_hero_url();
 
@@ -34,8 +43,6 @@ get_header();
   <nav class="sf-nav">
     <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="sf-logo">
       <?php
-        // Split business name: first word normal, second word highlighted
-        $parts = explode( ' ', $sf_name, 2 );
         if ( isset( $parts[1] ) ) {
           echo esc_html( $parts[0] ) . '<span>' . esc_html( $parts[1] ) . '</span>';
         } else {
@@ -59,9 +66,9 @@ get_header();
       <li><a href="#services" class="sf-scroll">Services</a></li>
       <li><a href="#how" class="sf-scroll">How It Works</a></li>
       <li><a href="#reviews" class="sf-scroll">Reviews</a></li>
-      <li><a href="#contact" class="sf-scroll">Contact</a></li>
+      <li><a href="<?php echo esc_url( $url_contact ); ?>"<?php echo $contact_scroll_class !== '' ? ' class="' . esc_attr( $contact_scroll_class ) . '"' : ''; ?>>Contact</a></li>
     </ul>
-    <a href="#contact" class="sf-btn sf-btn-amber sf-nav__cta sf-scroll">Book Now</a>
+    <a href="<?php echo esc_url( $url_contact ); ?>" class="sf-btn sf-btn-amber sf-nav__cta<?php echo $contact_scroll_class !== '' ? ' ' . esc_attr( $contact_scroll_class ) : ''; ?>">Book Now</a>
   </nav>
 
   <!-- ====== HERO ====== -->
@@ -74,7 +81,7 @@ get_header();
         — all under one roof. No call-out fee, no hidden costs.
       </p>
       <div class="sf-hero__actions">
-        <a href="#contact" class="sf-btn sf-btn-amber sf-btn-lg sf-scroll">Get Free Quote</a>
+        <a href="<?php echo esc_url( $url_contact ); ?>" class="sf-btn sf-btn-amber sf-btn-lg<?php echo $contact_scroll_class !== '' ? ' ' . esc_attr( $contact_scroll_class ) : ''; ?>">Get Free Quote</a>
         <a href="#services" class="sf-btn sf-btn-outline sf-btn-lg sf-scroll">Our Services</a>
       </div>
       <div class="sf-hero__trust">
@@ -111,28 +118,28 @@ get_header();
           <div class="sf-service-icon sf-service-icon--blue">&#9889;</div>
           <h3>Electrical</h3>
           <p>Fuse boards, rewiring, fault finding, EV chargers, outdoor lighting and full new-build wiring.</p>
-          <a href="#contact" class="sf-link sf-scroll">Get a quote &rarr;</a>
+          <a href="<?php echo esc_url( $url_contact ); ?>" class="sf-link<?php echo $contact_scroll_class !== '' ? ' ' . esc_attr( $contact_scroll_class ) : ''; ?>">Get a quote &rarr;</a>
         </div>
 
         <div class="sf-service-card">
           <div class="sf-service-icon sf-service-icon--cyan">&#128167;</div>
           <h3>Plumbing</h3>
           <p>Burst pipes, leaks, blocked drains, bathroom fitting, tap replacement and full renovations.</p>
-          <a href="#" class="sf-link">Learn more &rarr;</a>
+          <a href="<?php echo esc_url( $url_services ); ?>" class="sf-link">Learn more &rarr;</a>
         </div>
 
         <div class="sf-service-card">
           <div class="sf-service-icon sf-service-icon--orange">&#128293;</div>
           <h3>Heating &amp; Gas</h3>
           <p>Boiler servicing, breakdowns, radiator installs, central heating systems and smart thermostats.</p>
-          <a href="#" class="sf-link">Learn more &rarr;</a>
+          <a href="<?php echo esc_url( $url_services ); ?>" class="sf-link">Learn more &rarr;</a>
         </div>
 
         <div class="sf-service-card">
           <div class="sf-service-icon sf-service-icon--green">&#127968;</div>
           <h3>Building &amp; Renovation</h3>
           <p>Extensions, loft conversions, kitchen fitting, plastering, tiling and property maintenance.</p>
-          <a href="#" class="sf-link">Learn more &rarr;</a>
+          <a href="<?php echo esc_url( $url_services ); ?>" class="sf-link">Learn more &rarr;</a>
         </div>
 
       </div>
@@ -232,9 +239,9 @@ get_header();
     </div>
     <p class="sf-footer__copy">&copy; <?php echo date( 'Y' ); ?> <?php echo esc_html( $sf_name ); ?> Ltd. <?php echo esc_html( $sf_reg ); ?></p>
     <ul class="sf-footer__links">
-      <li><a href="<?php echo esc_url( home_url( '/privacy-policy/' ) ); ?>">Privacy</a></li>
-      <li><a href="<?php echo esc_url( home_url( '/terms/' ) ); ?>">Terms</a></li>
-      <li><a href="#contact" class="sf-scroll">Contact</a></li>
+      <li><a href="<?php echo esc_url( $url_privacy ); ?>">Privacy</a></li>
+      <li><a href="<?php echo esc_url( $url_terms ); ?>">Terms</a></li>
+      <li><a href="<?php echo esc_url( $url_contact ); ?>"<?php echo $contact_scroll_class !== '' ? ' class="' . esc_attr( $contact_scroll_class ) . '"' : ''; ?>>Contact</a></li>
     </ul>
   </footer>
 

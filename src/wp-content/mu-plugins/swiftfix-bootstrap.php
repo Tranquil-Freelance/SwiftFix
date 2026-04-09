@@ -6,6 +6,7 @@
  * Theme-only workflow: delete this file from mu-plugins, or in wp-config.php (before wp-settings.php) add:
  *   define( 'SWIFTFIX_AUTO_SETUP', false );
  * Also supported: env SWIFTFIX_AUTO_SETUP=0 (e.g. Render). Re-run automation: delete options swiftfix_full_bootstrap_done and swiftfix_bootstrap_extra_pages_seeded (and swiftfix_portfolio_seed_done if needed).
+ * Legal pages (Privacy, Terms, Contact): delete option swiftfix_legal_pages_seeded_v1 to run the one-time seed again.
  * Demo images: rhye-child/assets/bundled/ (rewritten into Elementor data; no CDN on Render). Re-run rewrite: delete option swiftfix_remote_images_localized_v3.
  * Homepage template: default is SwiftFix PHP landing (page-services-landing.php). Use Elementor home instead: env SWIFTFIX_HOME_TEMPLATE=elementor
  */
@@ -25,6 +26,8 @@ if ( false !== $swiftfix_auto_off && in_array( strtolower( (string) $swiftfix_au
 
 // After plugins (rhye-core) register CPTs such as arts_portfolio_item.
 add_action( 'init', 'swiftfix_bootstrap_run', 25 );
+// One-time: Privacy, Terms, and fallback Contact page (runs before extra_pages so the nav can link Contact).
+add_action( 'init', 'swiftfix_bootstrap_seed_legal_pages', 39 );
 // One-time import for sites that finished bootstrap before bundled pages existed.
 add_action( 'init', 'swiftfix_bootstrap_extra_pages_run', 40 );
 // One-time: download remote Elementor images + portfolio thumbs (sites that imported before sideload existed).
@@ -174,12 +177,14 @@ function swiftfix_bootstrap_execute() {
 	swiftfix_bootstrap_seed_portfolio_if_needed();
 	swiftfix_bootstrap_attach_portfolio_featured_images();
 	swiftfix_bootstrap_assign_home_template( (int) $home_id );
+	swiftfix_bootstrap_ensure_legal_pages_once();
 	swiftfix_bootstrap_create_primary_menu();
 
 	flush_rewrite_rules( false );
 
 	update_option( 'swiftfix_bootstrap_extra_pages_seeded', true );
 	update_option( 'swiftfix_full_bootstrap_done', true );
+	update_option( 'swiftfix_legal_pages_seeded_v1', true );
 }
 
 /**
@@ -882,6 +887,170 @@ function swiftfix_bootstrap_get_page_id_by_slug( $slug ) {
 }
 
 /**
+ * Prefer demo contact page, then generic slugs.
+ *
+ * @return int Page ID or 0.
+ */
+function swiftfix_bootstrap_contact_page_id() {
+	foreach ( array( 'contacts-02', 'contact', 'contact-us' ) as $slug ) {
+		$id = swiftfix_bootstrap_get_page_id_by_slug( $slug );
+		if ( $id ) {
+			return $id;
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * Create or publish a page and add starter content if the body is empty.
+ *
+ * @param string $slug    Post name.
+ * @param string $title   Title.
+ * @param string $content HTML content.
+ * @return int Post ID or 0 on failure.
+ */
+function swiftfix_bootstrap_ensure_page_with_content( $slug, $title, $content ) {
+	$existing = get_posts(
+		array(
+			'post_type'      => 'page',
+			'post_status'    => 'any',
+			'name'           => $slug,
+			'posts_per_page' => 1,
+		)
+	);
+	if ( ! empty( $existing ) ) {
+		$post   = $existing[0];
+		$id     = (int) $post->ID;
+		$update = array(
+			'ID'          => $id,
+			'post_status' => 'publish',
+		);
+		$text = trim( wp_strip_all_tags( (string) $post->post_content ) );
+		if ( $text === '' && $content !== '' ) {
+			$update['post_content'] = $content;
+		}
+		wp_update_post( $update );
+
+		return $id;
+	}
+
+	$new = wp_insert_post(
+		array(
+			'post_title'   => $title,
+			'post_name'    => $slug,
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+			'post_content' => $content,
+		),
+		true
+	);
+
+	if ( is_wp_error( $new ) || ! $new ) {
+		return 0;
+	}
+
+	return (int) $new;
+}
+
+/**
+ * @return string
+ */
+function swiftfix_bootstrap_placeholder_privacy_html() {
+	$site = esc_html( get_option( 'blogname', 'SwiftFix' ) );
+
+	return '<h2>Who we are</h2><p>Our website address is: <a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html( home_url( '/' ) ) . '</a>. This page describes how <strong>' . $site . '</strong> (“we”, “us”) handles personal information when you use our website or request our services.</p>'
+		. '<h2>Information we collect</h2><p>We may collect your name, phone number, email address, property address, and details about the work you need. This is used to provide quotes, schedule visits, and deliver our services.</p>'
+		. '<h2>How we use your data</h2><p>We use this information to respond to enquiries, fulfil contracts, comply with legal obligations (for example health and safety or accounting), and improve our service. We do not sell your personal data.</p>'
+		. '<h2>Cookies</h2><p>Our site may use essential cookies to keep the site secure and working. If we add analytics or marketing cookies, we will update this policy and, where required, ask for your consent.</p>'
+		. '<h2>How long we keep data</h2><p>We retain information only as long as needed for the purposes above and as required by law (for example tax or warranty records).</p>'
+		. '<h2>Your rights</h2><p>Under UK GDPR you may request access, correction, or deletion of your personal data where applicable. Contact us using the details on our website to make a request.</p>'
+		. '<h2>Updates</h2><p>We may update this policy from time to time. The “last updated” date at the bottom of this page will change when we do.</p>'
+		. '<p><em>Last updated: starter template — replace with your own policy or your solicitor’s text.</em></p>';
+}
+
+/**
+ * @return string
+ */
+function swiftfix_bootstrap_placeholder_terms_html() {
+	$site = esc_html( get_option( 'blogname', 'SwiftFix' ) );
+
+	return '<h2>Agreement</h2><p>By using this website or booking services with <strong>' . $site . '</strong>, you agree to these terms. If you do not agree, please do not use the site.</p>'
+		. '<h2>Services</h2><p>We provide domestic and small commercial trade services as described on our site. Quotes are estimates unless confirmed as fixed-price in writing. Access, permits, and safe working conditions at your property are your responsibility unless we agree otherwise.</p>'
+		. '<h2>Payments</h2><p>Payment terms will be confirmed before work begins (deposit, on completion, or invoicing). Late payment may incur statutory interest where permitted by law.</p>'
+		. '<h2>Cancellations</h2><p>Please give reasonable notice if you need to cancel or reschedule. We may charge for lost time or materials if notice is very short, as set out in your booking confirmation.</p>'
+		. '<h2>Liability</h2><p>We carry appropriate insurance for our work. We are not liable for indirect losses. Our liability is limited to the amount paid for the specific job giving rise to the claim, except where the law does not allow such a limit.</p>'
+		. '<h2>Website use</h2><p>Content on this site is for general information. We are not responsible for temporary downtime or third-party sites linked from here.</p>'
+		. '<h2>Law</h2><p>These terms are governed by the laws of England and Wales. Disputes are subject to the courts of England and Wales.</p>'
+		. '<p><em>Last updated: starter template — have these terms reviewed by a qualified professional before relying on them.</em></p>';
+}
+
+/**
+ * Create/publish Privacy, Terms, and a fallback Contact page when none exists.
+ * Runs during full bootstrap before the nav menu is built, and from the one-time init hook.
+ *
+ * @return void
+ */
+function swiftfix_bootstrap_ensure_legal_pages_once() {
+	$privacy_id = swiftfix_bootstrap_ensure_page_with_content(
+		'privacy-policy',
+		'Privacy Policy',
+		swiftfix_bootstrap_placeholder_privacy_html()
+	);
+	swiftfix_bootstrap_ensure_page_with_content(
+		'terms',
+		'Terms of Use',
+		swiftfix_bootstrap_placeholder_terms_html()
+	);
+
+	if ( $privacy_id > 0 && (int) get_option( 'wp_page_for_privacy_policy' ) < 1 ) {
+		update_option( 'wp_page_for_privacy_policy', $privacy_id );
+	}
+
+	if ( ! swiftfix_bootstrap_contact_page_id() ) {
+		swiftfix_bootstrap_ensure_page_with_content(
+			'contact',
+			'Contact',
+			'<p>Thank you for your interest. Please use the phone number or email shown on our site, or request a quote from our homepage.</p>'
+		);
+	}
+}
+
+/**
+ * One-time: ensure Privacy Policy, Terms, and a simple Contact page exist.
+ *
+ * @return void
+ */
+function swiftfix_bootstrap_seed_legal_pages() {
+	if ( get_option( 'swiftfix_legal_pages_seeded_v1' ) ) {
+		return;
+	}
+	if ( ! function_exists( 'is_blog_installed' ) || ! is_blog_installed() ) {
+		return;
+	}
+	if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
+		return;
+	}
+	if ( wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		return;
+	}
+
+	delete_option( 'swiftfix_bootstrap_last_error' );
+
+	try {
+		swiftfix_bootstrap_ensure_legal_pages_once();
+		flush_rewrite_rules( false );
+		update_option( 'swiftfix_legal_pages_seeded_v1', true );
+	} catch ( Throwable $e ) {
+		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
+		error_log( 'SwiftFix legal pages: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+	}
+}
+
+/**
  * Use full SwiftFix PHP landing for front page (nav, hero, services, reviews). Elementor: set SWIFTFIX_HOME_TEMPLATE=elementor.
  *
  * @param int $home_id Front page ID.
@@ -995,21 +1164,33 @@ function swiftfix_bootstrap_create_primary_menu() {
 			)
 		);
 	}
-	foreach ( array( 'services-02' => 'Services', 'contacts-02' => 'Contact' ) as $slug => $title ) {
-		$pid = swiftfix_bootstrap_get_page_id_by_slug( $slug );
-		if ( $pid ) {
-			wp_update_nav_menu_item(
-				$menu_id,
-				0,
-				array(
-					'menu-item-title'     => $title,
-					'menu-item-object-id' => $pid,
-					'menu-item-object'    => 'page',
-					'menu-item-type'      => 'post_type',
-					'menu-item-status'    => 'publish',
-				)
-			);
-		}
+	$services_id = swiftfix_bootstrap_get_page_id_by_slug( 'services-02' );
+	if ( $services_id ) {
+		wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-title'     => 'Services',
+				'menu-item-object-id' => $services_id,
+				'menu-item-object'    => 'page',
+				'menu-item-type'      => 'post_type',
+				'menu-item-status'    => 'publish',
+			)
+		);
+	}
+	$contact_id = swiftfix_bootstrap_contact_page_id();
+	if ( $contact_id ) {
+		wp_update_nav_menu_item(
+			$menu_id,
+			0,
+			array(
+				'menu-item-title'     => 'Contact',
+				'menu-item-object-id' => $contact_id,
+				'menu-item-object'    => 'page',
+				'menu-item-type'      => 'post_type',
+				'menu-item-status'    => 'publish',
+			)
+		);
 	}
 
 	swiftfix_bootstrap_set_swiftfix_menu_location( $menu_id );

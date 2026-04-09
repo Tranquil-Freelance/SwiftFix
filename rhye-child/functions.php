@@ -52,6 +52,32 @@ function swiftfix_get_services_landing_hero_url() {
 	return 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=840&h=880&fit=crop&crop=center&auto=format&q=80';
 }
 
+/**
+ * First published page matching any slug; otherwise fallback URL.
+ *
+ * @param string[] $slugs    Candidate page slugs (order matters).
+ * @param string   $fallback URL if none found.
+ * @return string
+ */
+function swiftfix_find_page_url( $slugs, $fallback ) {
+	foreach ( (array) $slugs as $slug ) {
+		$posts = get_posts(
+			array(
+				'name'           => $slug,
+				'post_type'      => 'page',
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+			)
+		);
+		if ( ! empty( $posts ) ) {
+			return get_permalink( $posts[0] );
+		}
+	}
+
+	return $fallback;
+}
+
 /* =====================================================
    CUSTOMIZER: SwiftFix Settings
    ===================================================== */
