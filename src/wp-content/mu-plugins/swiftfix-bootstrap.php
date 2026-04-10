@@ -897,7 +897,7 @@ function swiftfix_bootstrap_get_page_id_by_slug( $slug ) {
  * @return int Page ID or 0.
  */
 function swiftfix_bootstrap_contact_page_id() {
-	foreach ( array( 'contacts-02', 'contact', 'contact-us' ) as $slug ) {
+	foreach ( array( 'contact', 'contact-us', 'contacts-02' ) as $slug ) {
 		$id = swiftfix_bootstrap_get_page_id_by_slug( $slug );
 		if ( $id ) {
 			return $id;

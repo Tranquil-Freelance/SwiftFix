@@ -7,6 +7,7 @@
  */
 
 require_once get_stylesheet_directory() . '/inc/swiftfix-inner-data.php';
+require_once get_stylesheet_directory() . '/inc/swiftfix-contact-cf7.php';
 
 /*
  * If your child theme has more than one .css file (eg. ie.css, style.css, main.css) then

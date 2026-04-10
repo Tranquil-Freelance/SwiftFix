@@ -269,6 +269,62 @@ body.admin-bar.page-template-page-swiftfix-inner .sf-nav {
 	margin-top: 8px;
 }
 
+.swiftfix-cf7-form label {
+	display: block;
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: var(--navy, #1a2b4a);
+	margin-bottom: 6px;
+	margin-top: 16px;
+}
+
+.swiftfix-cf7-form label:first-of-type {
+	margin-top: 0;
+}
+
+.swiftfix-cf7-form input[type='text'],
+.swiftfix-cf7-form input[type='email'],
+.swiftfix-cf7-form input[type='tel'],
+.swiftfix-cf7-form textarea {
+	width: 100%;
+	max-width: 100%;
+	padding: 12px 14px;
+	border: 1px solid var(--border, #e8e4df);
+	border-radius: 10px;
+	font-family: var(--font, inherit);
+	font-size: 0.95rem;
+	margin-top: 4px;
+}
+
+.swiftfix-cf7-form textarea {
+	min-height: 140px;
+	resize: vertical;
+}
+
+.swiftfix-cf7-form input[type='submit'],
+.swiftfix-cf7-form .wpcf7-submit {
+	background: var(--amber, #e8913a);
+	color: #fff;
+	border: none;
+	padding: 14px 28px;
+	border-radius: 50px;
+	font-weight: 700;
+	cursor: pointer;
+	margin-top: 20px;
+	transition: background 0.2s ease;
+}
+
+.swiftfix-cf7-form input[type='submit']:hover,
+.swiftfix-cf7-form .wpcf7-submit:hover {
+	background: var(--amber-dark, #d07e2e);
+}
+
+.swiftfix-cf7-form .wpcf7-response-output {
+	margin-top: 16px;
+	border-radius: 10px;
+	font-size: 0.88rem;
+}
+
 @media (max-width: 1024px) {
 	.sf-inner-features {
 		grid-template-columns: repeat(2, 1fr);
