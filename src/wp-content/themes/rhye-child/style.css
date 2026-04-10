@@ -136,19 +136,6 @@
 
 .sf-nav__links a:hover { color: var(--navy); }
 
-.sf-nav__links .menu-item {
-  list-style: none;
-  margin: 0;
-}
-.sf-nav__links .menu-item a {
-  font-size: 0.88rem;
-  font-weight: 500;
-  color: var(--text-body);
-}
-.sf-nav__links .menu-item a:hover {
-  color: var(--navy);
-}
-
 .sf-btn {
   display: inline-flex;
   align-items: center;
