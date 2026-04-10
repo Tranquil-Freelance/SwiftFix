@@ -1,6 +1,6 @@
 <?php
 /**
- * SwiftFix top bar + nav (landing + inner pages).
+ * CAE Fix top bar + nav (landing + inner pages).
  *
  * @package Rhye_Child
  */

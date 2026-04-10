@@ -15,7 +15,7 @@ services:
       mountPath: /var/www/html/wp-content/uploads
       sizeGB: 5
     envVars:
-      # Optional: SWIFTFIX_SITE_NAME overrides default site title / SwiftFix customizer business name.
+      # Optional: SWIFTFIX_SITE_NAME overrides default site title / CAE Fix customizer business name.
       # Postgres fromDatabase supports user/password/database/connectionString — not "host"
       # (host is for web/private services). Use the private connection URL for libpq.
       - key: DATABASE_URL

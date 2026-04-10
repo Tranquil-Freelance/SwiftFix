@@ -25,7 +25,7 @@ done
 # Merge any missing paths from the image so Apache always gets a full root.
 cd /var/www/html
 if [ ! -f index.php ] && [ -f /usr/src/wordpress/index.php ]; then
-  echo >&2 "swiftfix: merging WordPress files from /usr/src/wordpress into /var/www/html"
+  echo >&2 "caefix: merging WordPress files from /usr/src/wordpress into /var/www/html"
   (cd /usr/src/wordpress && tar cf - .) | (cd /var/www/html && tar xf - --skip-old-files)
   chown -R www-data:www-data /var/www/html 2>/dev/null || true
 fi

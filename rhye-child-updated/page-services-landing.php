@@ -172,7 +172,7 @@ get_header();
     <h2>Ready to get started?</h2>
     <p>Free, no-obligation quotes. We cover all of Greater London &amp; surrounding areas.</p>
     <div class="sf-cta__actions">
-      <a href="mailto:hello@swiftfix.co.uk" class="sf-btn sf-btn-amber sf-btn-lg">Request a Free Quote</a>
+      <a href="mailto:hello@caefix.co.uk" class="sf-btn sf-btn-amber sf-btn-lg">Request a Free Quote</a>
       <a href="#services" class="sf-btn sf-btn-white sf-btn-lg">View Services</a>
     </div>
     <div class="sf-cta__phone">
@@ -183,7 +183,7 @@ get_header();
   <!-- ====== FOOTER ====== -->
   <footer class="sf-footer">
     <div class="sf-footer__logo">Swift<span>Fix</span></div>
-    <p class="sf-footer__copy">&copy; <?php echo date( 'Y' ); ?> SwiftFix Ltd. Registered in England &amp; Wales. Gas Safe Reg. No. 123456.</p>
+    <p class="sf-footer__copy">&copy; <?php echo date( 'Y' ); ?> CAE Fix Ltd. Registered in England &amp; Wales. Gas Safe Reg. No. 123456.</p>
     <ul class="sf-footer__links">
       <li><a href="#">Privacy</a></li>
       <li><a href="#">Terms</a></li>

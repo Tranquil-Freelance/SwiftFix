@@ -1,6 +1,6 @@
 <?php
 /**
- * SwiftFix branded inner pages: service presets + page kind detection.
+ * CAE Fix branded inner pages: service presets + page kind detection.
  *
  * @package Rhye_Child
  */
@@ -20,9 +20,9 @@ function swiftfix_get_shell_globals() {
 		return $cached;
 	}
 
-	$sf_name       = get_theme_mod( 'sf_business_name', 'SwiftFix' );
+	$sf_name       = get_theme_mod( 'sf_business_name', 'CAE Fix' );
 	$sf_phone      = get_theme_mod( 'sf_phone', '0800 123 4567' );
-	$sf_email      = get_theme_mod( 'sf_email', 'hello@swiftfix.co.uk' );
+	$sf_email      = get_theme_mod( 'sf_email', 'hello@caefix.co.uk' );
 	$sf_tagline    = get_theme_mod( 'sf_emergency_tagline', 'Burst pipe? Power cut? No heating?' );
 	$sf_reg        = get_theme_mod( 'sf_reg_info', 'Registered in England & Wales. Gas Safe Reg. No. 123456.' );
 	$sf_phone_href = 'tel:' . preg_replace( '/\s+/', '', $sf_phone );

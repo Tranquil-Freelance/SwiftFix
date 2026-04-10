@@ -1,7 +1,7 @@
 <?php
 /**
- * Template Name: SwiftFix — Branded inner page
- * Description: Services, Privacy, Terms, and Contact with the SwiftFix shell and hero imagery.
+ * Template Name: CAE Fix — Branded inner page
+ * Description: Services, Privacy, Terms, and Contact with the CAE Fix shell and hero imagery.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -42,7 +42,7 @@ if ( 'service' === $kind['type'] && ! empty( $kind['key'] ) ) {
 } elseif ( 'generic' === $kind['type'] ) {
 	$hero_intro = get_the_excerpt();
 	if ( $hero_intro === '' ) {
-		$hero_intro = __( 'SwiftFix multi-trade home services across your area.', 'rhye-child' );
+		$hero_intro = __( 'CAE Fix multi-trade home services across your area.', 'rhye-child' );
 	}
 }
 
@@ -118,12 +118,26 @@ $contact_cls   = $g['contact_scroll_class'];
 						<p><?php esc_html_e( '8:00–18:00 · 24/7 emergency line for urgent issues', 'rhye-child' ); ?></p>
 					</div>
 				</div>
-				<?php
-				$raw_contact = get_post()->post_content;
-				if ( trim( wp_strip_all_tags( (string) $raw_contact ) ) !== '' ) :
+				<div class="sf-contact-form-wrap">
+					<?php
+					$form_id = function_exists( 'swiftfix_get_cf7_quote_form_id' ) ? swiftfix_get_cf7_quote_form_id() : 0;
+					if ( $form_id ) {
+						echo do_shortcode( sprintf( '[contact-form-7 id="%d" html_class="swiftfix-cf7-form"]', absint( $form_id ) ) );
+					} else {
+						echo '<p class="sf-contact-cf7-missing">';
+						echo esc_html__( 'Install and activate Contact Form 7 to use the form below. You can still reach us by phone or email.', 'rhye-child' );
+						echo '</p>';
+					}
 					?>
-					<div class="sf-contact-form-wrap">
-						<?php the_content(); ?>
+				</div>
+				<?php
+				$is_elementor = get_post_meta( get_the_ID(), '_elementor_edit_mode', true ) === 'builder';
+				$raw_contact  = (string) get_post()->post_content;
+				$without_cf7  = preg_replace( '/\s*\[contact-form-7[^\]]*\]\s*/i', '', $raw_contact );
+				if ( ! $is_elementor && trim( wp_strip_all_tags( $without_cf7 ) ) !== '' ) :
+					?>
+					<div class="sf-prose sf-contact-extra" style="margin-top: 28px;">
+						<?php echo apply_filters( 'the_content', $without_cf7 ); ?>
 					</div>
 				<?php endif; ?>
 				<div class="sf-inner-actions" style="margin-top: 32px; justify-content: center;">

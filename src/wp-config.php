@@ -33,7 +33,7 @@ if ( getenv( 'RENDER' ) ) {
 			}
 			$fatal = array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR );
 			if ( in_array( (int) $e['type'], $fatal, true ) ) {
-				error_log( 'swiftfix fatal: ' . $e['message'] . ' in ' . $e['file'] . ':' . $e['line'] );
+				error_log( 'caefix fatal: ' . $e['message'] . ' in ' . $e['file'] . ':' . $e['line'] );
 			}
 		}
 	);

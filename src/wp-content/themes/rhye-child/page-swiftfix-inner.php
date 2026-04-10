@@ -1,7 +1,7 @@
 <?php
 /**
- * Template Name: SwiftFix — Branded inner page
- * Description: Services, Privacy, Terms, and Contact with the SwiftFix shell and hero imagery.
+ * Template Name: CAE Fix — Branded inner page
+ * Description: Services, Privacy, Terms, and Contact with the CAE Fix shell and hero imagery.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -42,7 +42,7 @@ if ( 'service' === $kind['type'] && ! empty( $kind['key'] ) ) {
 } elseif ( 'generic' === $kind['type'] ) {
 	$hero_intro = get_the_excerpt();
 	if ( $hero_intro === '' ) {
-		$hero_intro = __( 'SwiftFix multi-trade home services across your area.', 'rhye-child' );
+		$hero_intro = __( 'CAE Fix multi-trade home services across your area.', 'rhye-child' );
 	}
 }
 

@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: SwiftFix — automated setup
- * Description: Optional one-click setup (Elementor import, pages, SwiftFix theme mods). Not required if you only install Rhye + child from zip and build pages yourself.
+ * Plugin Name: CAE Fix — automated setup
+ * Description: Optional one-click setup (Elementor import, pages, CAE Fix theme mods). Not required if you only install Rhye + child from zip and build pages yourself.
  *
  * Theme-only workflow: delete this file from mu-plugins, or in wp-config.php (before wp-settings.php) add:
  *   define( 'SWIFTFIX_AUTO_SETUP', false );
@@ -9,7 +9,7 @@
  * Legal pages (Privacy, Terms, Contact): delete option swiftfix_legal_pages_seeded_v1 to run the one-time seed again.
  * Service detail pages + inner template: delete option swiftfix_branded_inner_pages_v1 to re-run (after legal pages exist).
  * Demo images: rhye-child/assets/bundled/ (rewritten into Elementor data; no CDN on Render). Re-run rewrite: delete option swiftfix_remote_images_localized_v3.
- * Homepage template: default is SwiftFix PHP landing (page-services-landing.php). Use Elementor home instead: env SWIFTFIX_HOME_TEMPLATE=elementor
+ * Homepage template: default is CAE Fix PHP landing (page-services-landing.php). Use Elementor home instead: env SWIFTFIX_HOME_TEMPLATE=elementor
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,13 +29,13 @@ if ( false !== $swiftfix_auto_off && in_array( strtolower( (string) $swiftfix_au
 add_action( 'init', 'swiftfix_bootstrap_run', 25 );
 // One-time: Privacy, Terms, and fallback Contact page (runs before service pages + extra import).
 add_action( 'init', 'swiftfix_bootstrap_seed_legal_pages', 39 );
-// One-time: SwiftFix service detail pages + assign SwiftFix inner template to legal/contact pages.
+// One-time: CAE Fix service detail pages + assign CAE Fix inner template to legal/contact pages.
 add_action( 'init', 'swiftfix_bootstrap_seed_branded_inner_pages', 40 );
 // One-time import for sites that finished bootstrap before bundled pages existed.
 add_action( 'init', 'swiftfix_bootstrap_extra_pages_run', 41 );
 // One-time: download remote Elementor images + portfolio thumbs (sites that imported before sideload existed).
 add_action( 'init', 'swiftfix_bootstrap_migrate_remote_images', 43 );
-// One-time: switch front page to SwiftFix PHP landing (existing installs).
+// One-time: switch front page to CAE Fix PHP landing (existing installs).
 add_action( 'init', 'swiftfix_bootstrap_one_time_php_home', 46 );
 
 /**
@@ -97,7 +97,7 @@ function swiftfix_bootstrap_run() {
 		swiftfix_bootstrap_execute();
 	} catch ( Throwable $e ) {
 		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
-		error_log( 'SwiftFix bootstrap: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'CAE Fix bootstrap: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
 }
 
@@ -168,7 +168,7 @@ function swiftfix_bootstrap_execute() {
 
 	$name = getenv( 'SWIFTFIX_SITE_NAME' );
 	if ( ! is_string( $name ) || $name === '' ) {
-		$name = 'SwiftFix';
+		$name = 'CAE Fix';
 	}
 	update_option( 'blogname', $name );
 
@@ -200,7 +200,7 @@ function swiftfix_bootstrap_polish_home_title( $home_id ) {
 	$title = getenv( 'SWIFTFIX_HOME_TITLE' );
 	if ( ! is_string( $title ) || $title === '' ) {
 		$bn = get_option( 'blogname' );
-		$title = is_string( $bn ) && $bn !== '' ? $bn : 'SwiftFix';
+		$title = is_string( $bn ) && $bn !== '' ? $bn : 'CAE Fix';
 	}
 	wp_update_post(
 		array(
@@ -211,14 +211,14 @@ function swiftfix_bootstrap_polish_home_title( $home_id ) {
 }
 
 /**
- * Fill SwiftFix Customizer keys only when not already stored (does not overwrite user choices).
+ * Fill CAE Fix Customizer keys only when not already stored (does not overwrite user choices).
  *
  * @param string $business_name Default business name (matches blogname after bootstrap).
  * @return void
  */
 function swiftfix_bootstrap_seed_theme_mods( $business_name = '' ) {
 	if ( ! is_string( $business_name ) || $business_name === '' ) {
-		$business_name = 'SwiftFix';
+		$business_name = 'CAE Fix';
 	}
 	$mods = get_theme_mods();
 	if ( ! is_array( $mods ) ) {
@@ -227,7 +227,7 @@ function swiftfix_bootstrap_seed_theme_mods( $business_name = '' ) {
 	$defaults = array(
 		'sf_business_name'      => $business_name,
 		'sf_phone'              => '0800 123 4567',
-		'sf_email'              => 'hello@swiftfix.co.uk',
+		'sf_email'              => 'hello@caefix.co.uk',
 		'sf_emergency_tagline'  => 'Burst pipe? Power cut? No heating?',
 		'sf_rating'             => '4.9',
 		'sf_review_count'       => '620',
@@ -376,7 +376,7 @@ function swiftfix_bootstrap_extra_pages_run() {
 	try {
 		$name = get_option( 'blogname' );
 		if ( ! is_string( $name ) || $name === '' ) {
-			$name = 'SwiftFix';
+			$name = 'CAE Fix';
 		}
 		swiftfix_bootstrap_seed_theme_mods( $name );
 		swiftfix_bootstrap_import_bundled_elementor_pages();
@@ -392,7 +392,7 @@ function swiftfix_bootstrap_extra_pages_run() {
 		update_option( 'swiftfix_bootstrap_extra_pages_seeded', true );
 	} catch ( Throwable $e ) {
 		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
-		error_log( 'SwiftFix bootstrap (extra pages): ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'CAE Fix bootstrap (extra pages): ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
 }
 
@@ -645,7 +645,7 @@ function swiftfix_bootstrap_ensure_local_attachment( $url ) {
 
 	if ( is_wp_error( $tmp ) ) {
 		$cache[ $url ] = 0;
-		error_log( 'SwiftFix sideload: ' . $url . ' — ' . $tmp->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'CAE Fix sideload: ' . $url . ' — ' . $tmp->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 
 		return 0;
 	}
@@ -663,7 +663,7 @@ function swiftfix_bootstrap_ensure_local_attachment( $url ) {
 
 	$attachment_id = media_handle_sideload( $file_array, 0 );
 	if ( is_wp_error( $attachment_id ) ) {
-		error_log( 'SwiftFix sideload media_handle_sideload: ' . $attachment_id->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'CAE Fix sideload media_handle_sideload: ' . $attachment_id->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		if ( is_string( $tmp ) && is_file( $tmp ) ) {
 			unlink( $tmp );
 		}
@@ -869,7 +869,7 @@ function swiftfix_bootstrap_migrate_remote_images() {
 		delete_option( 'swiftfix_remote_images_localized_v1' );
 	} catch ( Throwable $e ) {
 		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
-		error_log( 'SwiftFix migrate images: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'CAE Fix migrate images: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
 }
 
@@ -962,7 +962,7 @@ function swiftfix_bootstrap_ensure_page_with_content( $slug, $title, $content ) 
  * @return string
  */
 function swiftfix_bootstrap_placeholder_privacy_html() {
-	$site = esc_html( get_option( 'blogname', 'SwiftFix' ) );
+	$site = esc_html( get_option( 'blogname', 'CAE Fix' ) );
 
 	return '<h2>Who we are</h2><p>Our website address is <a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html( home_url( '/' ) ) . '</a>. This policy explains how <strong>' . $site . '</strong> (referred to as "we" or "us") collects, uses, and protects personal information when you browse this site, call or email us, or book trade services.</p>'
 		. '<h2>What we collect</h2><p>Depending on how you contact us, we may process your name, phone number, email address, property address, payment-related details (handled by our bank or card provider where applicable), and information about the job you describe (including photos you choose to send). Calls may be logged for training and quality only if we tell you at the time.</p>'
@@ -980,7 +980,7 @@ function swiftfix_bootstrap_placeholder_privacy_html() {
  * @return string
  */
 function swiftfix_bootstrap_placeholder_terms_html() {
-	$site = esc_html( get_option( 'blogname', 'SwiftFix' ) );
+	$site = esc_html( get_option( 'blogname', 'CAE Fix' ) );
 
 	return '<h2>Agreement</h2><p>By using this website or instructing <strong>' . $site . '</strong> to carry out work, you agree to these terms. If you disagree, please do not use the site or book our services.</p>'
 		. '<h2>Our services</h2><p>We provide domestic and light commercial trade services as described on our pages. Written or email quotes are valid for the period stated. A quote is not a contract until you accept it and we confirm the booking in writing (including email).</p>'
@@ -1054,12 +1054,12 @@ function swiftfix_bootstrap_seed_legal_pages() {
 		update_option( 'swiftfix_legal_pages_seeded_v1', true );
 	} catch ( Throwable $e ) {
 		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
-		error_log( 'SwiftFix legal pages: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'CAE Fix legal pages: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
 }
 
 /**
- * Assign SwiftFix inner template when the page is not built with Elementor.
+ * Assign CAE Fix inner template when the page is not built with Elementor.
  *
  * @param int $page_id Post ID.
  * @return void
@@ -1111,7 +1111,7 @@ function swiftfix_bootstrap_ensure_service_pages_once() {
 }
 
 /**
- * Apply SwiftFix inner template to Privacy, Terms, and simple Contact (not Elementor demo pages).
+ * Apply CAE Fix inner template to Privacy, Terms, and simple Contact (not Elementor demo pages).
  *
  * @return void
  */
@@ -1164,12 +1164,12 @@ function swiftfix_bootstrap_seed_branded_inner_pages() {
 		update_option( 'swiftfix_branded_inner_pages_v1', true );
 	} catch ( Throwable $e ) {
 		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
-		error_log( 'SwiftFix branded inner pages: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'CAE Fix branded inner pages: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
 }
 
 /**
- * Use full SwiftFix PHP landing for front page (nav, hero, services, reviews). Elementor: set SWIFTFIX_HOME_TEMPLATE=elementor.
+ * Use full CAE Fix PHP landing for front page (nav, hero, services, reviews). Elementor: set SWIFTFIX_HOME_TEMPLATE=elementor.
  *
  * @param int $home_id Front page ID.
  * @return void
@@ -1239,7 +1239,7 @@ function swiftfix_bootstrap_create_primary_menu() {
 	if ( ! function_exists( 'wp_create_nav_menu' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 	}
-	$menu_name = 'SwiftFix Primary';
+	$menu_name = 'CAE Fix Primary';
 	$menu_obj  = wp_get_nav_menu_object( $menu_name );
 	if ( $menu_obj ) {
 		$menu_id = (int) $menu_obj->term_id;
@@ -1416,6 +1416,6 @@ add_action(
 		if ( ! is_string( $err ) || $err === '' ) {
 			return;
 		}
-		echo '<div class="notice notice-error"><p><strong>SwiftFix setup</strong> — ' . esc_html( $err ) . '</p></div>';
+		echo '<div class="notice notice-error"><p><strong>CAE Fix setup</strong> — ' . esc_html( $err ) . '</p></div>';
 	}
 );

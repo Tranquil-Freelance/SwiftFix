@@ -7,9 +7,9 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 // --- Get Customizer values ---
-$sf_name     = get_theme_mod( 'sf_business_name', 'SwiftFix' );
+$sf_name     = get_theme_mod( 'sf_business_name', 'CAE Fix' );
 $sf_phone    = get_theme_mod( 'sf_phone', '0800 123 4567' );
-$sf_email    = get_theme_mod( 'sf_email', 'hello@swiftfix.co.uk' );
+$sf_email    = get_theme_mod( 'sf_email', 'hello@caefix.co.uk' );
 $sf_tagline  = get_theme_mod( 'sf_emergency_tagline', 'Burst pipe? Power cut? No heating?' );
 $sf_rating   = get_theme_mod( 'sf_rating', '4.9' );
 $sf_reviews  = get_theme_mod( 'sf_review_count', '620' );

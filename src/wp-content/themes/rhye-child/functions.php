@@ -31,7 +31,7 @@ function rhye_child_enqueue_styles() {
 }
 
 /**
- * Hero image for the Tradesman Services Landing template.
+ * Hero image for the CAE Fix tradesman services landing template.
  *
  * Order: Customizer media → theme bundle → Unsplash fallback.
  * We do not auto-load `images/hero-tradesman.jpg`; that path often picked up the wrong file.
@@ -104,20 +104,20 @@ function swiftfix_body_class_inner_template( $classes ) {
 }
 
 /* =====================================================
-   CUSTOMIZER: SwiftFix Settings
+   CUSTOMIZER: CAE Fix Settings
    ===================================================== */
 add_action( 'customize_register', 'swiftfix_customize_register' );
 function swiftfix_customize_register( $wp_customize ) {
 
 	// --- Section ---
 	$wp_customize->add_section( 'swiftfix_settings', array(
-		'title'    => __( 'SwiftFix Settings', 'rhye-child' ),
+		'title'    => __( 'CAE Fix Settings', 'rhye-child' ),
 		'priority' => 30,
 	) );
 
 	// --- Business Name ---
 	$wp_customize->add_setting( 'sf_business_name', array(
-		'default'           => 'SwiftFix',
+		'default'           => 'CAE Fix',
 		'sanitize_callback' => 'sanitize_text_field',
 	) );
 	$wp_customize->add_control( 'sf_business_name', array(
@@ -139,7 +139,7 @@ function swiftfix_customize_register( $wp_customize ) {
 
 	// --- Email ---
 	$wp_customize->add_setting( 'sf_email', array(
-		'default'           => 'hello@swiftfix.co.uk',
+		'default'           => 'hello@caefix.co.uk',
 		'sanitize_callback' => 'sanitize_email',
 	) );
 	$wp_customize->add_control( 'sf_email', array(

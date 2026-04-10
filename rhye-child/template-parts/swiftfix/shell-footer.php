@@ -1,6 +1,6 @@
 <?php
 /**
- * SwiftFix footer (landing + inner pages).
+ * CAE Fix footer (landing + inner pages).
  *
  * @package Rhye_Child
  */

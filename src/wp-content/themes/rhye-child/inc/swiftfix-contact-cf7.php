@@ -1,6 +1,6 @@
 <?php
 /**
- * Contact routing: prefer SwiftFix /contact/, redirect demo contacts-02, embed working CF7 form.
+ * Contact routing: prefer CAE Fix /contact/, redirect demo contacts-02, embed working CF7 form.
  *
  * @package Rhye_Child
  */
@@ -82,7 +82,7 @@ function swiftfix_ensure_published_contact_slug_page() {
 }
 
 /**
- * Assign SwiftFix inner template when the page is not an active Elementor builder document.
+ * Assign CAE Fix inner template when the page is not an active Elementor builder document.
  *
  * @param int $page_id Post ID.
  * @return void
@@ -162,7 +162,8 @@ function swiftfix_create_or_get_cf7_quote_form() {
 		return 0;
 	}
 
-	$title = 'SwiftFix quote request';
+	$title         = 'CAE Fix quote request';
+	$legacy_titles = array( $title, 'SwiftFix quote request' );
 
 	$existing = get_posts(
 		array(
@@ -172,7 +173,7 @@ function swiftfix_create_or_get_cf7_quote_form() {
 		)
 	);
 	foreach ( $existing as $f ) {
-		if ( $f->post_title === $title ) {
+		if ( in_array( $f->post_title, $legacy_titles, true ) ) {
 			return (int) $f->ID;
 		}
 	}
@@ -201,7 +202,7 @@ function swiftfix_create_or_get_cf7_quote_form() {
 }
 
 /**
- * Cached CF7 form ID for the SwiftFix quote form (creates the form when CF7 is available).
+ * Cached CF7 form ID for the CAE Fix quote form (creates the form when CF7 is available).
  *
  * @return int
  */
@@ -221,7 +222,7 @@ function swiftfix_get_cf7_quote_form_id() {
 add_action( 'wpcf7_init', 'swiftfix_get_cf7_quote_form_id', 5 );
 
 /**
- * Load CF7 scripts/styles on SwiftFix inner contact pages even when the shortcode is only output from the template
+ * Load CF7 scripts/styles on CAE Fix inner contact pages even when the shortcode is only output from the template
  * (not stored in post_content), so submission and validation work.
  *
  * @param bool $load Whether to load the default script.

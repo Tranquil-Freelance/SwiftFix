@@ -1,4 +1,4 @@
-# Run SwiftFix / Rhye locally (Local WP app)
+# Run CAE Fix / Rhye locally (Local WP app)
 
 Use **Local** with **MySQL**. The GitHub `Dockerfile` + `src/wp-config.php` are for **Render + PostgreSQL**; do **not** replace Local’s `wp-config.php` with the repo copy.
 
@@ -18,15 +18,15 @@ Copy from this repo:
 
 ## First visit = automatic setup
 
-Open the site in the browser (front end, not only wp-admin). The **SwiftFix bootstrap** mu-plugin will **once per site**:
+Open the site in the browser (front end, not only wp-admin). The **CAE Fix bootstrap** mu-plugin will **once per site**:
 
 1. Activate **Rhye Child**
 2. Install **Elementor** from wordpress.org if the plugin folder is missing (needs internet), or use files you add under `plugins/elementor/`
 3. Activate Elementor
 4. Import **`electrician-template.json`** into a **Home** page and set **Settings → Reading** (static Home + Blog)
-5. Set site title / SwiftFix customizer defaults (override title with env **`SWIFTFIX_SITE_NAME`** on Render; on Local you can change in **Settings → General** after)
+5. Set site title / CAE Fix customizer defaults (override title with env **`SWIFTFIX_SITE_NAME`** on Render; on Local you can change in **Settings → General** after)
 
-If something fails, check **wp-admin** for a red **SwiftFix setup** notice, or PHP/Apache logs.
+If something fails, check **wp-admin** for a red **CAE Fix setup** notice, or PHP/Apache logs.
 
 ## Then Render
 
