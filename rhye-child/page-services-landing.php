@@ -20,8 +20,9 @@ $parts = explode( ' ', $sf_name, 2 );
 
 $url_privacy  = swiftfix_find_page_url( array( 'privacy-policy', 'privacy' ), home_url( '/privacy-policy/' ) );
 $url_terms    = swiftfix_find_page_url( array( 'terms', 'terms-of-service', 'terms-and-conditions' ), home_url( '/terms/' ) );
-$url_contact  = swiftfix_find_page_url( array( 'contacts-02', 'contact', 'contact-us' ), home_url( '/#contact' ) );
+$url_contact  = swiftfix_find_page_url( array( 'contact', 'contacts-02', 'contact-us' ), home_url( '/#contact' ) );
 $url_services = swiftfix_find_page_url( array( 'services-02', 'services' ), home_url( '/#services' ) );
+$svc_urls     = swiftfix_get_landing_service_urls();
 
 $contact_scroll_class = ( false !== strpos( $url_contact, '#contact' ) ) ? 'sf-scroll' : '';
 
@@ -118,28 +119,28 @@ get_header();
           <div class="sf-service-icon sf-service-icon--blue">&#9889;</div>
           <h3>Electrical</h3>
           <p>Fuse boards, rewiring, fault finding, EV chargers, outdoor lighting and full new-build wiring.</p>
-          <a href="<?php echo esc_url( $url_contact ); ?>" class="sf-link<?php echo $contact_scroll_class !== '' ? ' ' . esc_attr( $contact_scroll_class ) : ''; ?>">Get a quote &rarr;</a>
+          <a href="<?php echo esc_url( $svc_urls['electrical'] ); ?>" class="sf-link"><?php esc_html_e( 'Learn more', 'rhye-child' ); ?> &rarr;</a>
         </div>
 
         <div class="sf-service-card">
           <div class="sf-service-icon sf-service-icon--cyan">&#128167;</div>
           <h3>Plumbing</h3>
           <p>Burst pipes, leaks, blocked drains, bathroom fitting, tap replacement and full renovations.</p>
-          <a href="<?php echo esc_url( $url_services ); ?>" class="sf-link">Learn more &rarr;</a>
+          <a href="<?php echo esc_url( $svc_urls['plumbing'] ); ?>" class="sf-link"><?php esc_html_e( 'Learn more', 'rhye-child' ); ?> &rarr;</a>
         </div>
 
         <div class="sf-service-card">
           <div class="sf-service-icon sf-service-icon--orange">&#128293;</div>
           <h3>Heating &amp; Gas</h3>
           <p>Boiler servicing, breakdowns, radiator installs, central heating systems and smart thermostats.</p>
-          <a href="<?php echo esc_url( $url_services ); ?>" class="sf-link">Learn more &rarr;</a>
+          <a href="<?php echo esc_url( $svc_urls['heating'] ); ?>" class="sf-link"><?php esc_html_e( 'Learn more', 'rhye-child' ); ?> &rarr;</a>
         </div>
 
         <div class="sf-service-card">
           <div class="sf-service-icon sf-service-icon--green">&#127968;</div>
           <h3>Building &amp; Renovation</h3>
           <p>Extensions, loft conversions, kitchen fitting, plastering, tiling and property maintenance.</p>
-          <a href="<?php echo esc_url( $url_services ); ?>" class="sf-link">Learn more &rarr;</a>
+          <a href="<?php echo esc_url( $svc_urls['building'] ); ?>" class="sf-link"><?php esc_html_e( 'Learn more', 'rhye-child' ); ?> &rarr;</a>
         </div>
 
       </div>

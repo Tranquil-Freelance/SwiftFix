@@ -6,6 +6,8 @@
  * @link https://developer.wordpress.org/themes/basics/theme-functions/
  */
 
+require_once get_stylesheet_directory() . '/inc/swiftfix-inner-data.php';
+
 /*
  * If your child theme has more than one .css file (eg. ie.css, style.css, main.css) then
  * you will have to make sure to maintain all of the parent theme dependencies.
@@ -76,6 +78,28 @@ function swiftfix_find_page_url( $slugs, $fallback ) {
 	}
 
 	return $fallback;
+}
+
+add_action( 'wp_enqueue_scripts', 'swiftfix_enqueue_inner_template_assets', 102 );
+function swiftfix_enqueue_inner_template_assets() {
+	if ( ! is_page_template( 'page-swiftfix-inner.php' ) ) {
+		return;
+	}
+	wp_enqueue_style(
+		'swiftfix-inner',
+		get_stylesheet_directory_uri() . '/assets/css/swiftfix-inner.css',
+		array( 'rhye-child-style' ),
+		wp_get_theme()->get( 'Version' )
+	);
+}
+
+add_filter( 'body_class', 'swiftfix_body_class_inner_template' );
+function swiftfix_body_class_inner_template( $classes ) {
+	if ( is_page_template( 'page-swiftfix-inner.php' ) ) {
+		$classes[] = 'swiftfix-inner-page';
+	}
+
+	return $classes;
 }
 
 /* =====================================================

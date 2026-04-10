@@ -7,6 +7,7 @@
  *   define( 'SWIFTFIX_AUTO_SETUP', false );
  * Also supported: env SWIFTFIX_AUTO_SETUP=0 (e.g. Render). Re-run automation: delete options swiftfix_full_bootstrap_done and swiftfix_bootstrap_extra_pages_seeded (and swiftfix_portfolio_seed_done if needed).
  * Legal pages (Privacy, Terms, Contact): delete option swiftfix_legal_pages_seeded_v1 to run the one-time seed again.
+ * Service detail pages + inner template: delete option swiftfix_branded_inner_pages_v1 to re-run (after legal pages exist).
  * Demo images: rhye-child/assets/bundled/ (rewritten into Elementor data; no CDN on Render). Re-run rewrite: delete option swiftfix_remote_images_localized_v3.
  * Homepage template: default is SwiftFix PHP landing (page-services-landing.php). Use Elementor home instead: env SWIFTFIX_HOME_TEMPLATE=elementor
  */
@@ -26,10 +27,12 @@ if ( false !== $swiftfix_auto_off && in_array( strtolower( (string) $swiftfix_au
 
 // After plugins (rhye-core) register CPTs such as arts_portfolio_item.
 add_action( 'init', 'swiftfix_bootstrap_run', 25 );
-// One-time: Privacy, Terms, and fallback Contact page (runs before extra_pages so the nav can link Contact).
+// One-time: Privacy, Terms, and fallback Contact page (runs before service pages + extra import).
 add_action( 'init', 'swiftfix_bootstrap_seed_legal_pages', 39 );
+// One-time: SwiftFix service detail pages + assign SwiftFix inner template to legal/contact pages.
+add_action( 'init', 'swiftfix_bootstrap_seed_branded_inner_pages', 40 );
 // One-time import for sites that finished bootstrap before bundled pages existed.
-add_action( 'init', 'swiftfix_bootstrap_extra_pages_run', 40 );
+add_action( 'init', 'swiftfix_bootstrap_extra_pages_run', 41 );
 // One-time: download remote Elementor images + portfolio thumbs (sites that imported before sideload existed).
 add_action( 'init', 'swiftfix_bootstrap_migrate_remote_images', 43 );
 // One-time: switch front page to SwiftFix PHP landing (existing installs).
@@ -178,6 +181,7 @@ function swiftfix_bootstrap_execute() {
 	swiftfix_bootstrap_attach_portfolio_featured_images();
 	swiftfix_bootstrap_assign_home_template( (int) $home_id );
 	swiftfix_bootstrap_ensure_legal_pages_once();
+	swiftfix_bootstrap_ensure_branded_inner_pages_once();
 	swiftfix_bootstrap_create_primary_menu();
 
 	flush_rewrite_rules( false );
@@ -185,6 +189,7 @@ function swiftfix_bootstrap_execute() {
 	update_option( 'swiftfix_bootstrap_extra_pages_seeded', true );
 	update_option( 'swiftfix_full_bootstrap_done', true );
 	update_option( 'swiftfix_legal_pages_seeded_v1', true );
+	update_option( 'swiftfix_branded_inner_pages_v1', true );
 }
 
 /**
@@ -959,14 +964,16 @@ function swiftfix_bootstrap_ensure_page_with_content( $slug, $title, $content ) 
 function swiftfix_bootstrap_placeholder_privacy_html() {
 	$site = esc_html( get_option( 'blogname', 'SwiftFix' ) );
 
-	return '<h2>Who we are</h2><p>Our website address is: <a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html( home_url( '/' ) ) . '</a>. This page describes how <strong>' . $site . '</strong> (“we”, “us”) handles personal information when you use our website or request our services.</p>'
-		. '<h2>Information we collect</h2><p>We may collect your name, phone number, email address, property address, and details about the work you need. This is used to provide quotes, schedule visits, and deliver our services.</p>'
-		. '<h2>How we use your data</h2><p>We use this information to respond to enquiries, fulfil contracts, comply with legal obligations (for example health and safety or accounting), and improve our service. We do not sell your personal data.</p>'
-		. '<h2>Cookies</h2><p>Our site may use essential cookies to keep the site secure and working. If we add analytics or marketing cookies, we will update this policy and, where required, ask for your consent.</p>'
-		. '<h2>How long we keep data</h2><p>We retain information only as long as needed for the purposes above and as required by law (for example tax or warranty records).</p>'
-		. '<h2>Your rights</h2><p>Under UK GDPR you may request access, correction, or deletion of your personal data where applicable. Contact us using the details on our website to make a request.</p>'
-		. '<h2>Updates</h2><p>We may update this policy from time to time. The “last updated” date at the bottom of this page will change when we do.</p>'
-		. '<p><em>Last updated: starter template — replace with your own policy or your solicitor’s text.</em></p>';
+	return '<h2>Who we are</h2><p>Our website address is <a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html( home_url( '/' ) ) . '</a>. This policy explains how <strong>' . $site . '</strong> (referred to as "we" or "us") collects, uses, and protects personal information when you browse this site, call or email us, or book trade services.</p>'
+		. '<h2>What we collect</h2><p>Depending on how you contact us, we may process your name, phone number, email address, property address, payment-related details (handled by our bank or card provider where applicable), and information about the job you describe (including photos you choose to send). Calls may be logged for training and quality only if we tell you at the time.</p>'
+		. '<h2>Why we use it</h2><p>We use this information to provide quotes, schedule visits, deliver and invoice work, meet legal and regulatory duties (including health, safety, and tax records), and improve how we respond to customers. We do not sell your personal data. Marketing emails, if any, are sent only with clear consent and you can opt out at any time.</p>'
+		. '<h2>Legal basis</h2><p>Where UK GDPR applies, we rely on performance of a contract (providing the services you ask for), legitimate interests (running a safe, efficient business), or legal obligation, as appropriate to each activity.</p>'
+		. '<h2>Cookies</h2><p>We use essential cookies and similar technologies needed for security and basic site operation. If we add analytics or non-essential cookies, we will update this policy and obtain consent where the law requires.</p>'
+		. '<h2>Retention</h2><p>We keep information only as long as necessary for the purposes above and to meet statutory retention periods (for example accounting, warranties, or dispute resolution).</p>'
+		. '<h2>Sharing</h2><p>We may share data with insurers, accountants, or IT providers who process it on our instructions, or with authorities when the law requires. We use reasonable technical and organisational measures to protect personal data.</p>'
+		. '<h2>Your rights</h2><p>You may have the right to access, correct, erase, restrict, or object to certain processing, and to complain to the ICO (UK). To exercise your rights, contact us using the details on this website.</p>'
+		. '<h2>Updates</h2><p>We may revise this policy; the date below will reflect the latest version.</p>'
+		. '<p><em>Last updated: starter template — replace with your own wording or advice from a qualified professional.</em></p>';
 }
 
 /**
@@ -975,14 +982,15 @@ function swiftfix_bootstrap_placeholder_privacy_html() {
 function swiftfix_bootstrap_placeholder_terms_html() {
 	$site = esc_html( get_option( 'blogname', 'SwiftFix' ) );
 
-	return '<h2>Agreement</h2><p>By using this website or booking services with <strong>' . $site . '</strong>, you agree to these terms. If you do not agree, please do not use the site.</p>'
-		. '<h2>Services</h2><p>We provide domestic and small commercial trade services as described on our site. Quotes are estimates unless confirmed as fixed-price in writing. Access, permits, and safe working conditions at your property are your responsibility unless we agree otherwise.</p>'
-		. '<h2>Payments</h2><p>Payment terms will be confirmed before work begins (deposit, on completion, or invoicing). Late payment may incur statutory interest where permitted by law.</p>'
-		. '<h2>Cancellations</h2><p>Please give reasonable notice if you need to cancel or reschedule. We may charge for lost time or materials if notice is very short, as set out in your booking confirmation.</p>'
-		. '<h2>Liability</h2><p>We carry appropriate insurance for our work. We are not liable for indirect losses. Our liability is limited to the amount paid for the specific job giving rise to the claim, except where the law does not allow such a limit.</p>'
-		. '<h2>Website use</h2><p>Content on this site is for general information. We are not responsible for temporary downtime or third-party sites linked from here.</p>'
-		. '<h2>Law</h2><p>These terms are governed by the laws of England and Wales. Disputes are subject to the courts of England and Wales.</p>'
-		. '<p><em>Last updated: starter template — have these terms reviewed by a qualified professional before relying on them.</em></p>';
+	return '<h2>Agreement</h2><p>By using this website or instructing <strong>' . $site . '</strong> to carry out work, you agree to these terms. If you disagree, please do not use the site or book our services.</p>'
+		. '<h2>Our services</h2><p>We provide domestic and light commercial trade services as described on our pages. Written or email quotes are valid for the period stated. A quote is not a contract until you accept it and we confirm the booking in writing (including email).</p>'
+		. '<h2>Access & your property</h2><p>You agree to provide safe access, working utilities, and any permissions (for example landlord consent or parking). Concealed issues (e.g. hidden pipework or asbestos) may require extra work and cost; we will explain options before proceeding where reasonably possible.</p>'
+		. '<h2>Payments</h2><p>Payment terms (deposit, interim, or payment on completion) are confirmed in your quote or invoice. Late payment may attract statutory interest and reasonable recovery costs where the law allows.</p>'
+		. '<h2>Cancellations & delays</h2><p>Please give as much notice as you can if you need to cancel or move an appointment. Repeated short-notice cancellations or lock-outs may incur a reasonable fee to cover lost time, as set out in your booking communication.</p>'
+		. '<h2>Warranties & liability</h2><p>We stand behind our workmanship for the period stated in your paperwork. We maintain appropriate insurance. We are not liable for indirect or consequential loss. Our total liability for any claim relating to a specific job is limited to the amount you paid us for that job except where liability cannot be limited by law.</p>'
+		. '<h2>Website</h2><p>Site content is for general information. We are not responsible for temporary unavailability or for third-party websites we may link to.</p>'
+		. '<h2>Law</h2><p>These terms are governed by the laws of England and Wales. The courts of England and Wales have exclusive jurisdiction.</p>'
+		. '<p><em>Last updated: starter template — have a solicitor review before relying on these terms in disputes.</em></p>';
 }
 
 /**
@@ -1011,7 +1019,7 @@ function swiftfix_bootstrap_ensure_legal_pages_once() {
 		swiftfix_bootstrap_ensure_page_with_content(
 			'contact',
 			'Contact',
-			'<p>Thank you for your interest. Please use the phone number or email shown on our site, or request a quote from our homepage.</p>'
+			'<p>We are happy to help with quotes, scheduling, and emergencies. Use the phone number or email in the site header for the fastest reply, or describe your job below.</p><p>If you use Contact Form 7 or WPForms, you can paste your form shortcode here in the editor.</p>'
 		);
 	}
 }
@@ -1047,6 +1055,116 @@ function swiftfix_bootstrap_seed_legal_pages() {
 	} catch ( Throwable $e ) {
 		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
 		error_log( 'SwiftFix legal pages: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+	}
+}
+
+/**
+ * Assign SwiftFix inner template when the page is not built with Elementor.
+ *
+ * @param int $page_id Post ID.
+ * @return void
+ */
+function swiftfix_bootstrap_safe_assign_inner_template( $page_id ) {
+	$page_id = (int) $page_id;
+	if ( $page_id < 1 ) {
+		return;
+	}
+	if ( get_post_meta( $page_id, '_elementor_edit_mode', true ) === 'builder' ) {
+		return;
+	}
+	update_post_meta( $page_id, '_wp_page_template', 'page-swiftfix-inner.php' );
+}
+
+/**
+ * Create four service detail pages and assign the branded inner template.
+ *
+ * @return void
+ */
+function swiftfix_bootstrap_ensure_service_pages_once() {
+	$list = array(
+		array( 'swiftfix-electrical', 'Electrical services' ),
+		array( 'swiftfix-plumbing', 'Plumbing services' ),
+		array( 'swiftfix-heating-gas', 'Heating & gas services' ),
+		array( 'swiftfix-building-renovation', 'Building & renovation' ),
+	);
+	foreach ( $list as $row ) {
+		list( $slug, $title ) = $row;
+		$id = swiftfix_bootstrap_get_page_id_by_slug( $slug );
+		if ( ! $id ) {
+			$new = wp_insert_post(
+				array(
+					'post_title'   => $title,
+					'post_name'    => $slug,
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+					'post_content' => '',
+				),
+				true
+			);
+			if ( is_wp_error( $new ) || ! $new ) {
+				continue;
+			}
+			$id = (int) $new;
+		}
+		swiftfix_bootstrap_safe_assign_inner_template( $id );
+	}
+}
+
+/**
+ * Apply SwiftFix inner template to Privacy, Terms, and simple Contact (not Elementor demo pages).
+ *
+ * @return void
+ */
+function swiftfix_bootstrap_assign_inner_template_legal_contact() {
+	foreach ( array( 'privacy-policy', 'terms', 'contact' ) as $slug ) {
+		$id = swiftfix_bootstrap_get_page_id_by_slug( $slug );
+		if ( $id ) {
+			swiftfix_bootstrap_safe_assign_inner_template( $id );
+		}
+	}
+}
+
+/**
+ * Service pages + legal/contact inner templates.
+ *
+ * @return void
+ */
+function swiftfix_bootstrap_ensure_branded_inner_pages_once() {
+	swiftfix_bootstrap_ensure_service_pages_once();
+	swiftfix_bootstrap_assign_inner_template_legal_contact();
+}
+
+/**
+ * One-time for existing installs.
+ *
+ * @return void
+ */
+function swiftfix_bootstrap_seed_branded_inner_pages() {
+	if ( get_option( 'swiftfix_branded_inner_pages_v1' ) ) {
+		return;
+	}
+	if ( ! function_exists( 'is_blog_installed' ) || ! is_blog_installed() ) {
+		return;
+	}
+	if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
+		return;
+	}
+	if ( wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		return;
+	}
+
+	delete_option( 'swiftfix_bootstrap_last_error' );
+
+	try {
+		swiftfix_bootstrap_ensure_branded_inner_pages_once();
+		flush_rewrite_rules( false );
+		update_option( 'swiftfix_branded_inner_pages_v1', true );
+	} catch ( Throwable $e ) {
+		update_option( 'swiftfix_bootstrap_last_error', $e->getMessage() );
+		error_log( 'SwiftFix branded inner pages: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 	}
 }
 
